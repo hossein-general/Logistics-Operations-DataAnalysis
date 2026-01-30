@@ -1,0 +1,294 @@
+// Dataset from kaggle: https://www.kaggle.com/datasets/yogape/logistics-operations-database
+// the markup language used in this document is DBML
+
+// 1. DRIVERS
+//    - Primary Key: driver_id
+//    - Contains: Driver demographics, employment history, license info
+
+Table drivers {
+    driver_id varchar [PK]
+    first_name varchar
+    last_name varchar
+    hire_date date
+    termination_date date // what if there where some drivers that have been working for some time, quited, then rejoined?
+    license_number varchar
+    license_state varchar
+    date_of_birth date
+    home_terminal varchar
+    employment_status varchar
+    cdl_class varchar // Commercian Driver's License
+    years_experience integer
+}
+
+// 2. TRUCKS
+//    - Primary Key: truck_id
+//    - Contains: Fleet equipment details, acquisition info, status
+
+Table trucks {
+    truck_id varchar [PK]
+    unit_number integer
+    make varchar
+    model_year integer
+    vin varchar // Vehicle Identification number
+    acquisition_date date
+    acquisition_mileage integer
+    fuel_type varchar
+    tank_capacity_gallons integer
+    status varchar
+    home_terminal varchar
+}
+
+// 3. TRAILERS
+//    - Primary Key: trailer_id
+//    - Contains: Trailer inventory, types, status
+
+Table trailers {
+    trailer_id varchar [PK]
+    trailer_number integer
+    trailer_type varchar
+    length_feet integer
+    model_year integer
+    vin varchar // Vehicle Identification number
+    acquisition_date date // the date that something is gained
+    status varchar
+    current_location varchar
+}
+
+// 4. CUSTOMERS
+//    - Primary Key: customer_id
+//    - Contains: Customer accounts, contract types, revenue potential
+
+Table customers {
+  customer_id varchar [primary key]
+  customer_name varchar
+  customer_type varchar
+  credit_terms_days integer
+  primary_freight_type varchar
+  account_status varchar
+  contract_start_date date
+  annual_revenue_potential integer
+}
+
+// 5. FACILITIES
+//    - Primary Key: facility_id
+//    - Contains: Terminal and warehouse locations, capacity
+
+Table facilities {
+    facility_id varchar [PK]
+    facility_name varchar
+    facility_type varchar
+    city varchar
+    state varchar
+    latitude float
+    longitude float
+    dock_doors integer // what is this??
+    operating_hours varchar // I should consider some changes to this column
+}
+
+// 6. ROUTES
+//    - Primary Key: route_id
+//    - Contains: Origin-destination pairs, distances, rate structures
+
+Table routes {
+    route_id varchar [PK]
+    origin_city varchar
+    origin_state varchar
+    destination_city varchar
+    destination_state varchar
+    typical_distance_miles integer
+    base_rate_per_mile float // what is this??
+    fuel_surcharge_rate float
+    typical_transit_days integer
+}
+
+
+
+// Operational Transaction --------------------------------
+
+// 7. LOADS
+//    - Primary Key: load_id
+//    - Foreign Keys: customer_id, route_id
+//    - Contains: Shipment details, revenue, booking type
+
+Table loads {
+  load_id varchar [primary key]
+  customer_id varchar
+  route_id varchar
+  load_date date
+  load_type varchar
+  weight_lbs integer
+  pieces integer
+  revenue float
+  fuel_surcharge float
+  accessorial_charges integer
+  load_status varchar
+  booking_type varchar
+}
+
+Ref:  loads.customer_id > customers.customer_id
+Ref:  loads.route_id > routes.route_id
+
+// 8. TRIPS
+//    - Primary Key: trip_id
+//    - Foreign Keys: load_id, driver_id, truck_id, trailer_id
+//    - Contains: Actual trip performance, fuel consumption, duration
+
+Table trips {
+  trip_id varchar [primary key]
+  load_id varchar
+  driver_id varchar
+  truck_id varchar
+  trailer_id varchar
+  dispatch_date date
+  actual_distance_miles integer
+  actual_duration_hours float
+  fuel_gallons_used float
+  average_mpg float
+  idle_time_hours float
+  trip_status varchar
+}
+
+Ref:  trips.load_id > loads.load_id
+Ref:  trips.driver_id > drivers.driver_id
+Ref:  trips.truck_id > trucks.truck_id
+Ref:  trips.trailer_id > trailers.trailer_id
+
+// 9. FUEL_PURCHASES
+//    - Primary Key: fuel_purchase_id
+//    - Foreign Keys: trip_id, truck_id, driver_id
+//    - Contains: Fuel transactions, prices, locations
+
+Table fuel_purchases {
+  fuel_purchase_id varchar [primary key]
+  trip_id varchar
+  truck_id varchar
+  driver_id varchar
+  purchase_date datetime
+  location_city varchar
+  locatoin_state varchar
+  gallons float
+  price_per_gallon float
+  total_cost float
+  fuel_card_number varchar
+}
+
+Ref:  fuel_purchases.trip_id > trips.trip_id
+Ref:  fuel_purchases.truck_id > trucks.truck_id
+Ref:  fuel_purchases.driver_id > drivers.driver_id
+
+// 10. MAINTENANCE_RECORDS
+//     - Primary Key: maintenance_id
+//     - Foreign Keys: truck_id
+//     - Contains: Service history, costs, downtime
+
+Table maintenance_records {
+  maintenance_id varchar [primary key]
+  truck_id varchar
+  maintenance_date date
+  maintenance_type varchar
+  odometer_reading integer
+  labor_hours float
+  labor_cost float
+  parts_cost float
+  total_cost float
+  facility_location varchar
+  downtime_hours float
+  service_description text
+}
+
+Ref:  maintenance_records.truck_id > trucks.truck_id
+
+// 11. DELIVERY_EVENTS
+//     - Primary Key: event_id
+//     - Foreign Keys: load_id, trip_id, facility_id
+//     - Contains: Pickup/delivery timestamps, detention, on-time status
+
+Table delivery_events {
+  event_id varchar [primary key]
+  load_id varchar
+  trip_id varchar
+  event_type varchar
+  facility_id varchar
+  scheduled_datetime datetime
+  actual_datetime datetime
+  detention_minutes integer
+  on_time_flag boolean
+  location_city varchar
+  locatoin_state varchar
+}
+
+Ref: delivery_events.load_id > loads.load_id
+Ref: delivery_events.trip_id > trips.trip_id
+Ref: delivery_events.facility_id > facilities.facility_id
+
+// 12. SAFETY_INCIDENTS
+//     - Primary Key: incident_id
+//     - Foreign Keys: trip_id, truck_id, driver_id
+//     - Contains: Accidents, violations, damage costs
+
+Table safety_incidents {
+  incident_id varchar [primary key]
+  trip_id varchar
+  truck_id varchar
+  driver_id varchar
+  incident_date datetime
+  incident_type varchar
+  location_city varchar
+  location_state varchar
+  at_fault_flag boolean
+  injury_flag boolean
+  vehicle_damage_cost float
+  cargo_damage_cost float
+  claim_amount float
+  preventable_flag boolean
+  description text
+}
+
+Ref: safety_incidents.trip_id > trips.trip_id
+Ref: safety_incidents.truck_id > trucks.truck_id
+Ref: safety_incidents.driver_id > drivers.driver_id
+
+// Aggregated Analystics ----------------------------------
+
+//13. DRIVER_MONTHLY_METRICS (Aggregated)
+//    - Composite Key: driver_id, month
+//    - Contains: Monthly performance summaries per driver
+Table drivers_monthly_metrics {
+  driver_id integer [primary key]
+  month date
+  trips_completed integer
+  total_miles integer
+  total_revenue float
+  average_mpg float
+  total_fuel_gallons float
+  on_time_delivery_rate float
+  average_idle_hours float
+  Indexes {
+    (driver_id, month) [unique]
+  }
+}
+
+Ref: drivers_monthly_metrics.driver_id > drivers.driver_id
+
+//14. TRUCK_UTILIZATION_METRICS (Aggregated)
+//    - Composite Key: truck_id, month
+//     - Contains: Monthly equipment utilization summaries
+
+Table truck_utilization_metrics {
+  truck_id varchar [primary key]
+  month date
+  trips_completed integer
+  total_miles integer
+  total_revenue float
+  average_mpg float
+  maintenance_events integer
+  maintenance_cost float
+  downtime_hours float
+  utilization_rate float // A utilization rate represents the ratio of billable hours to total available hours, so values greater than 1 indicate unrealistic billing scenarios or miscalculations.
+  Indexes {
+    (truck_id, month) [unique]
+  }
+}
+
+Ref: truck_utilization_metrics.truck_id > trucks.truck_id
+

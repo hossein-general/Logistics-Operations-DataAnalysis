@@ -1,0 +1,15 @@
+Note: i believe the relation between safety_incidents and trucks, also with drivers, is unnecesary. as they are already connected to each other by the trip table
+
+Performance Optimization:
+TODO: make some data refrence base (e.g. make a cities and states table, and refrence them anywhere needed within other tables, instead of storing strings in each column)
+TODO: change the data type for trailers.status to boolean (actived/deactive)
+
+TODO: change the data type for the drivers.driver_id to varchar (instead of int)
+TODO: in drivers.years_experience the name is misspelled. fix it
+TODO: change the facilities.facility_id data type to varchar (instead of int)
+TODO: change the routes.route_id data type to varchar (instead of int)
+TODO: change the trailers.trailer_id data type to varchar (instead of int)
+TODO: change the trailers.length_feet data type to integer (instead of varchar)
+TODO: change the trucks.truck_id data type to varchar (instead of int)
+TODO: change the delivery_events.scheduled_datetime data type to datetime (instead of date)
+TODO: change the delivery_events.actual_datetime data type to datetime (instead of date)
