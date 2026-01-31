@@ -254,7 +254,7 @@ Ref: safety_incidents.driver_id > drivers.driver_id
 //    - Composite Key: driver_id, month
 //    - Contains: Monthly performance summaries per driver
 Table drivers_monthly_metrics {
-  driver_id integer [primary key]
+  driver_id varchar [primary key]
   month date
   trips_completed integer
   total_miles integer

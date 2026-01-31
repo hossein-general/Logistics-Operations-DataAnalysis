@@ -103,6 +103,8 @@ truck_utilization_metrics = pd.read_csv((script_dir / r'logistics/Aggregated Ana
 # **based on the database diagram
 # NOTE most of these convertings are not necessary as they are already done during the csv importing process, but i rather do that manually too, in case something went wrong throughout the process
 # TODO make a function that does all these works itself, and you only pass the datatype you want, with a list of columns to convert automatically
+# TODO make some difference between integer and float numbers conversion by adding some formatting feature for each (like explicitly mention the float values to have two floating point numbers)
+
 # customers
 customers.credit_terms_days = pd.to_numeric(customers["credit_terms_days"], errors="coerce")
 customers.annual_revenue_potential = pd.to_numeric(customers["annual_revenue_potential"], errors="coerce")
@@ -174,12 +176,43 @@ maintenance_records.total_cost = pd.to_numeric(maintenance_records["total_cost"]
 maintenance_records.downtime_hours = pd.to_numeric(maintenance_records["downtime_hours"], errors="coerce")
 
 # safety_incidents
+safety_incidents.incident_date = pd.to_datetime(safety_incidents["incident_date"], errors="coerce")
+safety_incidents.at_fault_flag = safety_incidents["at_fault_flag"].astype(bool)
+safety_incidents.injury_flag = safety_incidents["injury_flag"].astype(bool)
+safety_incidents.vehicle_damage_cost = pd.to_numeric(safety_incidents["vehicle_damage_cost"], errors="coerce")
+safety_incidents.cargo_damage_cost = pd.to_numeric(safety_incidents["cargo_damage_cost"], errors="coerce")
+safety_incidents.claim_amount = pd.to_numeric(safety_incidents["claim_amount"], errors="coerce")
+safety_incidents.preventable_flag = safety_incidents["preventable_flag"].astype(bool)
+
 # trips
+trips.dispatch_date = pd.to_datetime(trips["dispatch_date"], errors="coerce")
+trips.actual_distance_miles = pd.to_numeric(trips["actual_distance_miles"], errors="coerce")
+trips.actual_duration_hours = pd.to_numeric(trips["actual_duration_hours"], errors="coerce")
+trips.fuel_gallons_used = pd.to_numeric(trips["fuel_gallons_used"], errors="coerce")
+trips.average_mpg = pd.to_numeric(trips["average_mpg"], errors="coerce")
+trips.idle_time_hours = pd.to_numeric(trips["idle_time_hours"], errors="coerce")
+
 
 # driver_monthly_metrics
+driver_monthly_metrics.month = pd.to_datetime(driver_monthly_metrics["month"], errors="coerce")
+driver_monthly_metrics.trips_completed = pd.to_numeric(driver_monthly_metrics["trips_completed"], errors="coerce")
+driver_monthly_metrics.total_miles = pd.to_numeric(driver_monthly_metrics["total_miles"], errors="coerce")
+driver_monthly_metrics.total_revenue = pd.to_numeric(driver_monthly_metrics["total_revenue"], errors="coerce")
+driver_monthly_metrics.average_mpg = pd.to_numeric(driver_monthly_metrics["average_mpg"], errors="coerce")
+driver_monthly_metrics.total_fuel_gallons = pd.to_numeric(driver_monthly_metrics["total_fuel_gallons"], errors="coerce")
+driver_monthly_metrics.on_time_delivery_rate = pd.to_numeric(driver_monthly_metrics["on_time_delivery_rate"], errors="coerce")
+driver_monthly_metrics.average_idle_hours = pd.to_numeric(driver_monthly_metrics["average_idle_hours"], errors="coerce")
+
 # truck_utilization_metrics
+truck_utilization_metrics.month = pd.to_datetime(truck_utilization_metrics["month"], errors="coerce")
+truck_utilization_metrics.trips_completed = pd.to_numeric(truck_utilization_metrics["trips_completed"], errors="coerce")
+truck_utilization_metrics.total_miles = pd.to_numeric(truck_utilization_metrics["total_miles"], errors="coerce")
+truck_utilization_metrics.total_revenue = pd.to_numeric(truck_utilization_metrics["total_revenue"], errors="coerce")
+truck_utilization_metrics.average_mpg = pd.to_numeric(truck_utilization_metrics["average_mpg"], errors="coerce")
+truck_utilization_metrics.maintenance_events = pd.to_numeric(truck_utilization_metrics["maintenance_events"], errors="coerce")
+truck_utilization_metrics.maintenance_cost = pd.to_numeric(truck_utilization_metrics["maintenance_cost"], errors="coerce")
+truck_utilization_metrics.downtime_hours = pd.to_numeric(truck_utilization_metrics["downtime_hours"], errors="coerce")
+truck_utilization_metrics.utilization_rate = pd.to_numeric(truck_utilization_metrics["utilization_rate"], errors="coerce")
 
 
-
-print("this is for test")
 ipdb.set_trace()
