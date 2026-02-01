@@ -1,4 +1,4 @@
-#region Import Packages
+#region Import Libraries
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -7,18 +7,17 @@ import ipdb
 from pathlib import Path
 
 #region Importing CSV files
-# preparing the relative path
 
 
 # TODO implement a class that holds the tables data
 # class DataStorage:
 #     def __init__(self, name):
 #         self.name = name
-#         self.tables = []
+#         self.tables = dict()
 
 #     def tables(self):
-#         return self.tables
-    
+#         return self.tables.keys()
+
 #     def add_table(self, new_table: pandas.core.frame.DataFrame):
 #         if isinstance(new_table, pd.core.frame.DataFrame):
 #             self.tables.append(new_table)
@@ -30,7 +29,7 @@ from pathlib import Path
 
 # Class to split the operating hours into separated open_hour, close_hour and 24/7_flag columns
 class OpenHoursConvert:
-    def __init__(self, df: pd.core.frame.DataFrame):
+    def __init__(self, df: pd.core.frame.DataFrame): # df is given in order to create new columns directly without needing to pass it later
         self.df = df
 
         # for each row, there is a record in each of these lists, and they are in order
@@ -78,9 +77,10 @@ class OpenHoursConvert:
 
 
 
-
+# preparing the relative path
 script_dir=Path(__file__).parent    # path to the current directory
 
+# Core Entities
 customers = pd.read_csv((script_dir / r'logistics/Core Entities/customers.csv').resolve())
 drivers = pd.read_csv((script_dir / r'logistics/Core Entities/drivers.csv').resolve())
 facilities = pd.read_csv((script_dir / r'logistics/Core Entities/facilities.csv').resolve())
@@ -88,6 +88,7 @@ routes = pd.read_csv((script_dir / r'logistics/Core Entities/routes.csv').resolv
 trailers = pd.read_csv((script_dir / r'logistics/Core Entities/trailers.csv').resolve())
 trucks = pd.read_csv((script_dir / r'logistics/Core Entities/trucks.csv').resolve())
 
+# Operational Transactions
 delivery_events = pd.read_csv((script_dir / r'logistics/Operational Transactions/delivery_events.csv').resolve())
 fuel_purchases = pd.read_csv((script_dir / r'logistics/Operational Transactions/fuel_purchases.csv').resolve())
 loads = pd.read_csv((script_dir / r'logistics/Operational Transactions/loads.csv').resolve())
@@ -95,6 +96,7 @@ maintenance_records = pd.read_csv((script_dir / r'logistics/Operational Transact
 safety_incidents = pd.read_csv((script_dir / r'logistics/Operational Transactions/safety_incidents.csv').resolve())
 trips = pd.read_csv((script_dir / r'logistics/Operational Transactions/trips.csv').resolve())
 
+# Aggregated Analytics
 driver_monthly_metrics = pd.read_csv((script_dir / r'logistics/Aggregated Analytics/driver_monthly_metrics.csv').resolve())
 truck_utilization_metrics = pd.read_csv((script_dir / r'logistics/Aggregated Analytics/truck_utilization_metrics.csv').resolve())
 
@@ -105,23 +107,71 @@ truck_utilization_metrics = pd.read_csv((script_dir / r'logistics/Aggregated Ana
 # TODO make a function that does all these works itself, and you only pass the datatype you want, with a list of columns to convert automatically
 # TODO make some difference between integer and float numbers conversion by adding some formatting feature for each (like explicitly mention the float values to have two floating point numbers)
 
+
+# dict creator
+# gets: dataframe, column name
+# returns: an indexed dictionary of each category within that column of that dataframe
+# this lambda function aims to generate a dictionary, using the groupby funciton to get a generator of a column within the dataframe, containting tuples for each group. 
+# first item in each tuple is one of groups names, so we turn them into a single list, check the len, then create a range object based on the length. the we map the list of 
+# categories with the numbers within the newly generated range object. this resaults in a list of tuples 
+# each tuple contains 2 values, the first one is the name and the second one is the index. then we pass the whole thing into dict() function to create a dictionary
+# these dictionaries are used as maps for turning object type values into numeric types in our dataframes
+categorizer = lambda df, column: dict(zip(x:=[i[0] for i in df.groupby(column)], range(len(x))))
+
+# this one is a function version for the previous lambda function:
+def categorized_func(df: pd.core.frame.DataFrame, column: str):
+    gen = df.groupby(column)
+    groups = []
+    for i in gen:
+        groups.append(i[0])
+
+    category_dict = dict(zip(groups, len(groups)))
+    return category_dict
+
+
+# TODO make a process that gets a sample of about 30 rows of each column of a data frame, then if the number of groups found was samaller than a certain number, generate a map dictionary automatically for that specific column, and applies it by itself.
+# the previous idea requires a more dynamic design of data frames. something like a container class object for each dataframe that could also hold map dictionaries within themselves
+# also add a function to detect columns with only 2 categories, and convert them into boolean types
+
+# general maps
+# TODO combine similar map dictionaries to make a single refrence dictionary
+# states:
+drivers_license_state = categorizer(drivers, "license_state")
+facilities_state = categorizer(facilities, "state")
+routes_origin_state = categorizer(routes, "origin_state")
+routes_destination_state = categorizer(routes, "destination_state")
+# cities:
+facilities_city = categorizer(facilities, "city")
+routes_origin_city = categorizer(routes, "origin_city")
+routes_destination_city = categorizer(routes, "destination_city")
+
 # customers
 customers.credit_terms_days = pd.to_numeric(customers["credit_terms_days"], errors="coerce")
 customers.annual_revenue_potential = pd.to_numeric(customers["annual_revenue_potential"], errors="coerce")
 customers.contract_start_date = pd.to_datetime(customers["contract_start_date"], errors="coerce")
+#---
+customers_customer_type = categorizer(customers, "customer_type")
+customers_primary_freight_type = categorizer(customers, "primary_freight_type")
+customers_account_status = categorizer(customers, "account_status")
 
 # drivers
 drivers.hire_date = pd.to_datetime(drivers["hire_date"], errors="coerce")
 drivers.termination_date = pd.to_datetime(drivers["termination_date"], errors="coerce")
 drivers.date_of_birth = pd.to_datetime(drivers["date_of_birth"], errors="coerce")
 drivers.years_experience = pd.to_numeric(drivers["years_experience"], errors="coerce")
+#---
+drivers_home_terminal = categorizer(drivers, "home_terminal")
+drivers_employment_status = categorizer(drivers, "employment_status")
+drivers_cdl_class = categorizer(drivers, "cdl_class")
 
 # facilities
 facilities.latitude = pd.to_numeric(facilities["latitude"], errors="coerce")
 facilities.longitude = pd.to_numeric(facilities["longitude"], errors="coerce")
 facilities.dock_doors = pd.to_numeric(facilities["dock_doors"], errors="coerce")
+#---
+facilities_facilities_type = categorizer(facilities, "facility_type")
 
-# converting facilities.operating_hours from string to time columns, consisiting open_time, close_time, and a 24/7 flag
+#--- converting facilities.operating_hours from string to time columns, consisiting open_time, close_time, and a 24/7 flag
 converter = OpenHoursConvert(facilities)
 facilities.operating_hours.apply(converter.column_convert)
 converter.generate_columns()
@@ -138,6 +188,9 @@ trailers.trailer_number = pd.to_numeric(trailers["trailer_number"], errors="coer
 trailers.length_feet = pd.to_numeric(trailers["length_feet"], errors="coerce")
 trailers.model_year = pd.to_numeric(trailers["model_year"], errors="coerce")
 trailers.acquisition_date = pd.to_datetime(trailers["acquisition_date"], errors="coerce")
+#---
+# routes_ = categorizer(routes, "city")
+
 
 # trucks
 trucks.unit_number = pd.to_numeric(trucks["unit_number"], errors="coerce")
@@ -213,6 +266,26 @@ truck_utilization_metrics.maintenance_events = pd.to_numeric(truck_utilization_m
 truck_utilization_metrics.maintenance_cost = pd.to_numeric(truck_utilization_metrics["maintenance_cost"], errors="coerce")
 truck_utilization_metrics.downtime_hours = pd.to_numeric(truck_utilization_metrics["downtime_hours"], errors="coerce")
 truck_utilization_metrics.utilization_rate = pd.to_numeric(truck_utilization_metrics["utilization_rate"], errors="coerce")
+
+#region isnull count
+# finding the number of nulls in each category and removing them
+customers.isnull().sum()                    # nothing
+drivers.isnull().sum()                      # termination_date: 124
+facilities.isnull().sum()                   # open_time: 16, close_time: 16
+routes.isnull().sum()                       # nothing
+trailers.isnull().sum()                     # nothing
+trucks.isnull().sum()                       # nothing
+delivery_events.isnull().sum()              # nothing
+fuel_purchases.isnull().sum()               # truck_id: 3880, driver_id: 3988
+loads.isnull().sum()                        # nothing
+maintenance_records.isnull().sum()          # nothing
+safety_incidents.isnull().sum()             # nothing
+trips.isnull().sum()                        # driver_id: 1714, truck_id: 1672, trailer_id: 1680
+driver_monthly_metrics.isnull().sum()       # nothing
+truck_utilization_metrics.isnull().sum()    # nothing
+
+#endregion
+
 
 
 ipdb.set_trace()
