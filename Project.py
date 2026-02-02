@@ -133,6 +133,8 @@ def categorized_func(df: pd.core.frame.DataFrame, column: str):
 # the previous idea requires a more dynamic design of data frames. something like a container class object for each dataframe that could also hold map dictionaries within themselves
 # also add a function to detect columns with only 2 categories, and convert them into boolean types
 
+# TODO convert ids into integer, and separate them (i think it would turn out better than string)
+
 # general maps
 # TODO combine similar map dictionaries to make a single refrence dictionary
 # states:
@@ -140,10 +142,22 @@ drivers_license_state = categorizer(drivers, "license_state")
 facilities_state = categorizer(facilities, "state")
 routes_origin_state = categorizer(routes, "origin_state")
 routes_destination_state = categorizer(routes, "destination_state")
+delivery_events_location_state = categorizer(delivery_events, "location_state")
+fuel_purchases_location_state = categorizer(delivery_events, "location_state")
+safety_incidents_location_state = categorizer(safety_incidents, "location_state")
+
 # cities:
+drivers_home_terminal = categorizer(drivers, "home_terminal")
 facilities_city = categorizer(facilities, "city")
 routes_origin_city = categorizer(routes, "origin_city")
 routes_destination_city = categorizer(routes, "destination_city")
+trailers_current_location = categorizer(trailers, "current_location")
+trucks_home_terminal = categorizer(trucks, "home_terminal")
+delivery_events_location_city = categorizer(delivery_events, "location_city")
+fuel_purchases_location_city = categorizer(fuel_purchases, "location_city")
+maintenance_records_facility_location = categorizer(maintenance_records, "facility_location")
+safety_incidents_location_city = categorizer(safety_incidents, "location_city")
+
 
 # customers
 customers.credit_terms_days = pd.to_numeric(customers["credit_terms_days"], errors="coerce")
@@ -154,15 +168,16 @@ customers_customer_type = categorizer(customers, "customer_type")
 customers_primary_freight_type = categorizer(customers, "primary_freight_type")
 customers_account_status = categorizer(customers, "account_status")
 
+
 # drivers
 drivers.hire_date = pd.to_datetime(drivers["hire_date"], errors="coerce")
 drivers.termination_date = pd.to_datetime(drivers["termination_date"], errors="coerce")
 drivers.date_of_birth = pd.to_datetime(drivers["date_of_birth"], errors="coerce")
 drivers.years_experience = pd.to_numeric(drivers["years_experience"], errors="coerce")
 #---
-drivers_home_terminal = categorizer(drivers, "home_terminal")
 drivers_employment_status = categorizer(drivers, "employment_status")
 drivers_cdl_class = categorizer(drivers, "cdl_class")
+
 
 # facilities
 facilities.latitude = pd.to_numeric(facilities["latitude"], errors="coerce")
@@ -183,13 +198,15 @@ routes.base_rate_per_mile = pd.to_numeric(routes["base_rate_per_mile"], errors="
 routes.fuel_surcharge_rate = pd.to_numeric(routes["fuel_surcharge_rate"], errors="coerce")
 routes.typical_transit_days = pd.to_numeric(routes["typical_transit_days"], errors="coerce")
 
+
 # trailers
 trailers.trailer_number = pd.to_numeric(trailers["trailer_number"], errors="coerce")
 trailers.length_feet = pd.to_numeric(trailers["length_feet"], errors="coerce")
 trailers.model_year = pd.to_numeric(trailers["model_year"], errors="coerce")
 trailers.acquisition_date = pd.to_datetime(trailers["acquisition_date"], errors="coerce")
 #---
-# routes_ = categorizer(routes, "city")
+trailers_trailer_type = categorizer(trailers, "trailer_type")
+trailers_status = categorizer(trailers, "status")
 
 
 # trucks
@@ -198,18 +215,28 @@ trucks.model_year = pd.to_numeric(trucks["model_year"], errors="coerce")
 trucks.acquisition_mileage = pd.to_numeric(trucks["acquisition_mileage"], errors="coerce")
 trucks.tank_capacity_gallons = pd.to_numeric(trucks["tank_capacity_gallons"], errors="coerce")
 trucks.acquisition_date = pd.to_datetime(trucks["acquisition_date"], errors="coerce")
+#---
+trucks_make = categorizer(trucks, "make")
+trucks_fuel_type = categorizer(trucks, "fuel_type")
+trucks_status = categorizer(trucks, "status")
+
 
 # delivery_events
 delivery_events.scheduled_datetime = pd.to_datetime(delivery_events["scheduled_datetime"], errors="coerce")
 delivery_events.actual_datetime = pd.to_datetime(delivery_events["actual_datetime"], errors="coerce")
 delivery_events.detention_minutes = pd.to_numeric(delivery_events["detention_minutes"], errors="coerce")
 delivery_events.on_time_flag = delivery_events["on_time_flag"].astype(bool)
+#---
+delivery_events_event_type = categorizer(delivery_events, "event_type")
+delivery_events_on_time_flag = categorizer(delivery_events, "on_time_flag")
+
 
 # fuel_purchases
 fuel_purchases.purchase_date = pd.to_datetime(fuel_purchases["purchase_date"], errors="coerce")
 fuel_purchases.gallons = pd.to_numeric(fuel_purchases["gallons"], errors="coerce")
 fuel_purchases.price_per_gallon = pd.to_numeric(fuel_purchases["price_per_gallon"], errors="coerce")
 fuel_purchases.total_cost = pd.to_numeric(fuel_purchases["total_cost"], errors="coerce")
+
 
 # loads
 loads.load_date = pd.to_datetime(loads["load_date"], errors="coerce")
@@ -218,6 +245,11 @@ loads.pieces = pd.to_numeric(loads["pieces"], errors="coerce")
 loads.revenue = pd.to_numeric(loads["revenue"], errors="coerce")
 loads.fuel_surcharge = pd.to_numeric(loads["fuel_surcharge"], errors="coerce")
 loads.accessorial_charges = pd.to_numeric(loads["accessorial_charges"], errors="coerce")
+#---
+loads_load_type = categorizer(loads, "load_type")
+loads_load_status = categorizer(loads, "load_status")
+loads_booking_type = categorizer(loads, "booking_type")
+
 
 # maintenance_records
 maintenance_records.maintenance_date = pd.to_datetime(maintenance_records["maintenance_date"], errors="coerce")
@@ -227,6 +259,10 @@ maintenance_records.labor_cost = pd.to_numeric(maintenance_records["labor_cost"]
 maintenance_records.parts_cost = pd.to_numeric(maintenance_records["parts_cost"], errors="coerce")
 maintenance_records.total_cost = pd.to_numeric(maintenance_records["total_cost"], errors="coerce")
 maintenance_records.downtime_hours = pd.to_numeric(maintenance_records["downtime_hours"], errors="coerce")
+#---
+maintenance_records_maintenance_type = categorizer(maintenance_records, "maintenance_type")
+maintenance_records_service_description = categorizer(maintenance_records, "service_description")
+
 
 # safety_incidents
 safety_incidents.incident_date = pd.to_datetime(safety_incidents["incident_date"], errors="coerce")
@@ -236,6 +272,13 @@ safety_incidents.vehicle_damage_cost = pd.to_numeric(safety_incidents["vehicle_d
 safety_incidents.cargo_damage_cost = pd.to_numeric(safety_incidents["cargo_damage_cost"], errors="coerce")
 safety_incidents.claim_amount = pd.to_numeric(safety_incidents["claim_amount"], errors="coerce")
 safety_incidents.preventable_flag = safety_incidents["preventable_flag"].astype(bool)
+#---
+safety_incidents_incident_type = categorizer(safety_incidents, "incident_type")
+safety_incidents_at_fault_flag = categorizer(safety_incidents, "at_fault_flag")
+safety_incidents_injury_flag = categorizer(safety_incidents, "injury_flag")
+safety_incidents_preventable_flag = categorizer(safety_incidents, "preventable_flag")
+safety_incidents_description = categorizer(safety_incidents, "description")
+
 
 # trips
 trips.dispatch_date = pd.to_datetime(trips["dispatch_date"], errors="coerce")
@@ -244,6 +287,8 @@ trips.actual_duration_hours = pd.to_numeric(trips["actual_duration_hours"], erro
 trips.fuel_gallons_used = pd.to_numeric(trips["fuel_gallons_used"], errors="coerce")
 trips.average_mpg = pd.to_numeric(trips["average_mpg"], errors="coerce")
 trips.idle_time_hours = pd.to_numeric(trips["idle_time_hours"], errors="coerce")
+#---
+trips_trip_status = categorizer(trips, "trip_status")
 
 
 # driver_monthly_metrics

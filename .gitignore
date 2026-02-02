@@ -1,6 +1,8 @@
 
 # personnaly added:
 backups/
+env/
+.env/
 
 # added by libre office
 .~*
