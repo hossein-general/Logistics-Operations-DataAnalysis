@@ -1,11 +1,13 @@
 #region Import Libraries
+# main imports
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-import ipdb
-from pathlib import Path
-
+# other imports
+import ipdb     # for debugging purposes
+from pathlib import Path    # for finding the relative path to datasets
+import os   # for checking the operating system (linux, windows, mac) and using the relevant command to clear the screen
 #region Importing CSV files
 
 
@@ -48,7 +50,6 @@ class OpenHoursConvert:
     def column_convert(self, item: str):
         item = item.strip()
         if item == "24/7":
-            # ipdb.set_trace()
             self.open_time.append(pd.NaT)
             self.close_time.append(pd.NaT)
             self.flag_24_7.append(True)
@@ -76,6 +77,26 @@ class OpenHoursConvert:
         self.df["is_24_7_flag"] = self.flag_24_7
 
 
+
+# Class to print each datasets content one by one (for making sure that everything is ok)
+class PrintClass:
+    def __init__(self, *df: pd.core.frame.DataFrame):
+        self.df = df
+
+    def print_df(self, samples: int = 40):   # samples shows the number of rows that will be shown for each itme
+        for df in self.df:
+            os.system('cls' if os.name == 'nt' else 'clear') # for Linux and Mac it returns 'posix'
+            # in order to prevent errors being raised, we should first check the number of items within a dataframe
+            if len(df) <= samples:
+                print(df)
+            else:
+                print(df.sample(samples))
+
+            print("\n", df.dtypes)
+            input("next")
+
+# applying some modifications to pandas displaying system
+pd.options.display.max_rows=200
 
 # preparing the relative path
 script_dir=Path(__file__).parent    # path to the current directory
@@ -195,7 +216,7 @@ customers_account_status = categorizer(customers, "account_status")
 #---
 customers["customer_type"] = customers["customer_type"].map(customers_customer_type)
 customers["primary_freight_type"] = customers["primary_freight_type"].map(customers_primary_freight_type)
-customers["account_status"] = customers["account_status"].map(customers_account_status)
+customers["account_status"] = customers["account_status"].map(customers_account_status).astype(bool)
 
 
 # drivers
@@ -209,6 +230,8 @@ drivers_cdl_class = categorizer(drivers, "cdl_class")
 #---
 drivers["employment_status"] = drivers["employment_status"].map(drivers_employment_status)
 drivers["cdl_class"] = drivers["cdl_class"].map(drivers_cdl_class)
+drivers["license_state"] = drivers["license_state"].map(states_map_dict)
+drivers["home_terminal"] = drivers["home_terminal"].map(cities_map_dict)
 
 
 # facilities
@@ -219,11 +242,14 @@ facilities.dock_doors = pd.to_numeric(facilities["dock_doors"], errors="coerce")
 facilities_facility_type = categorizer(facilities, "facility_type")
 #---
 facilities["facility_type"] = facilities["facility_type"].map(facilities_facility_type)
+facilities["state"] = facilities["state"].map(states_map_dict)
+facilities["city"] = facilities["city"].map(cities_map_dict)
 
 #--- converting facilities.operating_hours from string to time columns, consisiting open_time, close_time, and a 24/7 flag
 converter = OpenHoursConvert(facilities)
 facilities.operating_hours.apply(converter.column_convert)
 converter.generate_columns()
+facilities.drop("operating_hours", axis=1, inplace=True)
 
 
 # routes
@@ -231,6 +257,11 @@ routes.typical_distance_miles = pd.to_numeric(routes["typical_distance_miles"], 
 routes.base_rate_per_mile = pd.to_numeric(routes["base_rate_per_mile"], errors="coerce")
 routes.fuel_surcharge_rate = pd.to_numeric(routes["fuel_surcharge_rate"], errors="coerce")
 routes.typical_transit_days = pd.to_numeric(routes["typical_transit_days"], errors="coerce")
+#---
+routes["origin_state"] = routes["origin_state"].map(states_map_dict)
+routes["destination_state"] = routes["destination_state"].map(states_map_dict)
+routes["origin_city"] = routes["origin_city"].map(cities_map_dict)
+routes["destination_city"] = routes["destination_city"].map(cities_map_dict)
 
 
 # trailers
@@ -244,6 +275,7 @@ trailers_status = categorizer(trailers, "status")
 #---
 trailers["status"] = trailers["status"].map(trailers_status)
 trailers["trailer_type"] = trailers["trailer_type"].map(trailers_trailer_type)
+trailers["current_location"] = trailers["current_location"].map(cities_map_dict)
 
 
 # trucks
@@ -260,6 +292,7 @@ trucks_status = categorizer(trucks, "status")
 trucks["make"] = trucks["make"].map(trucks_make)
 trucks["fuel_type"] = trucks["fuel_type"].map(trucks_fuel_type)
 trucks["status"] = trucks["status"].map(trucks_status)
+trucks["home_terminal"] = trucks["home_terminal"].map(cities_map_dict)
 
 
 # delivery_events
@@ -273,13 +306,17 @@ delivery_events_on_time_flag = categorizer(delivery_events, "on_time_flag")
 #---
 delivery_events["event_type"] = delivery_events["event_type"].map(delivery_events_event_type)
 delivery_events["on_time_flag"] = delivery_events["on_time_flag"].map(delivery_events_on_time_flag)
-
+delivery_events["location_state"] = delivery_events["location_state"].map(states_map_dict)
+delivery_events["location_city"] = delivery_events["location_city"].map(cities_map_dict)
 
 # fuel_purchases
 fuel_purchases.purchase_date = pd.to_datetime(fuel_purchases["purchase_date"], errors="coerce")
 fuel_purchases.gallons = pd.to_numeric(fuel_purchases["gallons"], errors="coerce")
 fuel_purchases.price_per_gallon = pd.to_numeric(fuel_purchases["price_per_gallon"], errors="coerce")
 fuel_purchases.total_cost = pd.to_numeric(fuel_purchases["total_cost"], errors="coerce")
+#---
+fuel_purchases["location_state"] = fuel_purchases["location_state"].map(states_map_dict)
+fuel_purchases["location_city"] = fuel_purchases["location_city"].map(cities_map_dict)
 
 
 # loads
@@ -313,7 +350,7 @@ maintenance_records_service_description = categorizer(maintenance_records, "serv
 #---
 maintenance_records["maintenance_type"] = maintenance_records["maintenance_type"].map(maintenance_records_maintenance_type)
 maintenance_records["service_description"] = maintenance_records["service_description"].map(maintenance_records_service_description)
-
+maintenance_records["facility_location"] = maintenance_records["facility_location"].map(cities_map_dict)
 
 # safety_incidents
 safety_incidents.incident_date = pd.to_datetime(safety_incidents["incident_date"], errors="coerce")
@@ -335,7 +372,8 @@ safety_incidents["at_fault_flag"] = safety_incidents["at_fault_flag"].map(safety
 safety_incidents["injury_flag"] = safety_incidents["injury_flag"].map(safety_incidents_injury_flag)
 safety_incidents["preventable_flag"] = safety_incidents["preventable_flag"].map(safety_incidents_preventable_flag)
 safety_incidents["description"] = safety_incidents["description"].map(safety_incidents_description)
-
+safety_incidents["location_state"] = safety_incidents["location_state"].map(states_map_dict)
+safety_incidents["location_city"] = safety_incidents["location_city"].map(cities_map_dict)
 
 # trips
 trips.dispatch_date = pd.to_datetime(trips["dispatch_date"], errors="coerce")
@@ -389,6 +427,23 @@ driver_monthly_metrics.isnull().sum()       # nothing
 truck_utilization_metrics.isnull().sum()    # nothing
 
 #endregion
+
+printer = PrintClass(customers,
+    drivers,
+    facilities,
+    routes,
+    trailers,
+    trucks,
+    delivery_events,
+    fuel_purchases,
+    loads,
+    maintenance_records,
+    safety_incidents,
+    trips,
+    driver_monthly_metrics,
+    truck_utilization_metrics
+)
+
 
 
 
