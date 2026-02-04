@@ -83,7 +83,7 @@ class PrintClass:
     def __init__(self, *df: pd.core.frame.DataFrame):
         self.df = df
 
-    def print_df(self, samples: int = 40):   # samples shows the number of rows that will be shown for each itme
+    def print_dfs(self, samples: int = 40):   # samples shows the number of rows that will be shown for each itme
         for df in self.df:
             os.system('cls' if os.name == 'nt' else 'clear') # for Linux and Mac it returns 'posix'
             # in order to prevent errors being raised, we should first check the number of items within a dataframe
@@ -94,6 +94,13 @@ class PrintClass:
 
             print("\n", df.dtypes)
             input("next")
+    
+    def print_isnull(self):
+        for df in self.df:
+            os.system('cls' if os.name == 'nt' else 'clear') # for Linux and Mac it returns 'posix'
+            print(df.isnull().sum())
+            input("next")
+
 
 # applying some modifications to pandas displaying system
 pd.options.display.max_rows=200
@@ -137,16 +144,15 @@ truck_utilization_metrics = pd.read_csv((script_dir / r'logistics/Aggregated Ana
 # categories with the numbers within the newly generated range object. this resaults in a list of tuples 
 # each tuple contains 2 values, the first one is the name and the second one is the index. then we pass the whole thing into dict() function to create a dictionary
 # these dictionaries are used as maps for turning object type values into numeric types in our dataframes
-categorizer = lambda df, column: dict(zip(x:=[i[0] for i in df.groupby(column)], range(len(x))))
+categorizer_lambda = lambda df, column: dict(zip(x:=[i[0] for i in df.groupby(column)], range(len(x))))
 
 # this one is a function version for the previous lambda function:
-def categorized_func(df: pd.core.frame.DataFrame, column: str):
+def categorizer_func(df: pd.core.frame.DataFrame, column: str):
     gen = df.groupby(column)
     groups = []
     for i in gen:
         groups.append(i[0])
-
-    category_dict = dict(zip(groups, len(groups)))
+    category_dict = dict(zip(groups, range(len(groups))))
     return category_dict
 
 
@@ -160,13 +166,13 @@ def categorized_func(df: pd.core.frame.DataFrame, column: str):
 # TODO combine similar map dictionaries to make a single refrence dictionary
 # states:
 # this dictionary contains all states used within this dataset. it will be used to map satets as integers in tables
-drivers_license_state = categorizer(drivers, "license_state")
-facilities_state = categorizer(facilities, "state")
-routes_origin_state = categorizer(routes, "origin_state")
-routes_destination_state = categorizer(routes, "destination_state")
-delivery_events_location_state = categorizer(delivery_events, "location_state")
-fuel_purchases_location_state = categorizer(delivery_events, "location_state")
-safety_incidents_location_state = categorizer(safety_incidents, "location_state")
+drivers_license_state = categorizer_func(drivers, "license_state")
+facilities_state = categorizer_func(facilities, "state")
+routes_origin_state = categorizer_func(routes, "origin_state")
+routes_destination_state = categorizer_func(routes, "destination_state")
+delivery_events_location_state = categorizer_func(delivery_events, "location_state")
+fuel_purchases_location_state = categorizer_func(delivery_events, "location_state")
+safety_incidents_location_state = categorizer_func(safety_incidents, "location_state")
 states_map_dict = {
     **drivers_license_state, 
     **facilities_state, 
@@ -180,16 +186,16 @@ states_map_dict = {
 # cities:
 # this dictionary contains all cities used within this dataset. it will be used to map satets as integers in tables
 # im not sure if there are any similarties between cites, and if some kind of misspell would have resaulted in indexing the same city for the second time. this may require REGEX
-drivers_home_terminal = categorizer(drivers, "home_terminal")
-facilities_city = categorizer(facilities, "city")
-routes_origin_city = categorizer(routes, "origin_city")
-routes_destination_city = categorizer(routes, "destination_city")
-trailers_current_location = categorizer(trailers, "current_location")
-trucks_home_terminal = categorizer(trucks, "home_terminal")
-delivery_events_location_city = categorizer(delivery_events, "location_city")
-fuel_purchases_location_city = categorizer(fuel_purchases, "location_city")
-maintenance_records_facility_location = categorizer(maintenance_records, "facility_location")
-safety_incidents_location_city = categorizer(safety_incidents, "location_city")
+drivers_home_terminal = categorizer_func(drivers, "home_terminal")
+facilities_city = categorizer_func(facilities, "city")
+routes_origin_city = categorizer_func(routes, "origin_city")
+routes_destination_city = categorizer_func(routes, "destination_city")
+trailers_current_location = categorizer_func(trailers, "current_location")
+trucks_home_terminal = categorizer_func(trucks, "home_terminal")
+delivery_events_location_city = categorizer_func(delivery_events, "location_city")
+fuel_purchases_location_city = categorizer_func(fuel_purchases, "location_city")
+maintenance_records_facility_location = categorizer_func(maintenance_records, "facility_location")
+safety_incidents_location_city = categorizer_func(safety_incidents, "location_city")
 cities_map_dict = {
     **drivers_home_terminal,
     **facilities_city,
@@ -210,9 +216,9 @@ customers.credit_terms_days = pd.to_numeric(customers["credit_terms_days"], erro
 customers.annual_revenue_potential = pd.to_numeric(customers["annual_revenue_potential"], errors="coerce")
 customers.contract_start_date = pd.to_datetime(customers["contract_start_date"], errors="coerce")
 #---
-customers_customer_type = categorizer(customers, "customer_type")
-customers_primary_freight_type = categorizer(customers, "primary_freight_type")
-customers_account_status = categorizer(customers, "account_status")
+customers_customer_type = categorizer_func(customers, "customer_type")
+customers_primary_freight_type = categorizer_func(customers, "primary_freight_type")
+customers_account_status = categorizer_func(customers, "account_status")
 #---
 customers["customer_type"] = customers["customer_type"].map(customers_customer_type)
 customers["primary_freight_type"] = customers["primary_freight_type"].map(customers_primary_freight_type)
@@ -225,8 +231,8 @@ drivers.termination_date = pd.to_datetime(drivers["termination_date"], errors="c
 drivers.date_of_birth = pd.to_datetime(drivers["date_of_birth"], errors="coerce")
 drivers.years_experience = pd.to_numeric(drivers["years_experience"], errors="coerce")
 #---
-drivers_employment_status = categorizer(drivers, "employment_status")
-drivers_cdl_class = categorizer(drivers, "cdl_class")
+drivers_employment_status = categorizer_func(drivers, "employment_status")
+drivers_cdl_class = categorizer_func(drivers, "cdl_class")
 #---
 drivers["employment_status"] = drivers["employment_status"].map(drivers_employment_status)
 drivers["cdl_class"] = drivers["cdl_class"].map(drivers_cdl_class)
@@ -239,7 +245,7 @@ facilities.latitude = pd.to_numeric(facilities["latitude"], errors="coerce")
 facilities.longitude = pd.to_numeric(facilities["longitude"], errors="coerce")
 facilities.dock_doors = pd.to_numeric(facilities["dock_doors"], errors="coerce")
 #---
-facilities_facility_type = categorizer(facilities, "facility_type")
+facilities_facility_type = categorizer_func(facilities, "facility_type")
 #---
 facilities["facility_type"] = facilities["facility_type"].map(facilities_facility_type)
 facilities["state"] = facilities["state"].map(states_map_dict)
@@ -270,10 +276,10 @@ trailers.length_feet = pd.to_numeric(trailers["length_feet"], errors="coerce")
 trailers.model_year = pd.to_numeric(trailers["model_year"], errors="coerce")
 trailers.acquisition_date = pd.to_datetime(trailers["acquisition_date"], errors="coerce")
 #---
-trailers_trailer_type = categorizer(trailers, "trailer_type")
-trailers_status = categorizer(trailers, "status")
+trailers_trailer_type = categorizer_func(trailers, "trailer_type")
+trailers_status = categorizer_func(trailers, "status")
 #---
-trailers["status"] = trailers["status"].map(trailers_status)
+trailers["status"] = trailers["status"].map(trailers_status).astype(bool)
 trailers["trailer_type"] = trailers["trailer_type"].map(trailers_trailer_type)
 trailers["current_location"] = trailers["current_location"].map(cities_map_dict)
 
@@ -285,9 +291,9 @@ trucks.acquisition_mileage = pd.to_numeric(trucks["acquisition_mileage"], errors
 trucks.tank_capacity_gallons = pd.to_numeric(trucks["tank_capacity_gallons"], errors="coerce")
 trucks.acquisition_date = pd.to_datetime(trucks["acquisition_date"], errors="coerce")
 #---
-trucks_make = categorizer(trucks, "make")
-trucks_fuel_type = categorizer(trucks, "fuel_type")
-trucks_status = categorizer(trucks, "status")
+trucks_make = categorizer_func(trucks, "make")
+trucks_fuel_type = categorizer_func(trucks, "fuel_type")
+trucks_status = categorizer_func(trucks, "status")
 #---
 trucks["make"] = trucks["make"].map(trucks_make)
 trucks["fuel_type"] = trucks["fuel_type"].map(trucks_fuel_type)
@@ -301,11 +307,10 @@ delivery_events.actual_datetime = pd.to_datetime(delivery_events["actual_datetim
 delivery_events.detention_minutes = pd.to_numeric(delivery_events["detention_minutes"], errors="coerce")
 delivery_events.on_time_flag = delivery_events["on_time_flag"].astype(bool)
 #---
-delivery_events_event_type = categorizer(delivery_events, "event_type")
-delivery_events_on_time_flag = categorizer(delivery_events, "on_time_flag")
+delivery_events_event_type = categorizer_func(delivery_events, "event_type")
+delivery_events_on_time_flag = categorizer_func(delivery_events, "on_time_flag")
 #---
 delivery_events["event_type"] = delivery_events["event_type"].map(delivery_events_event_type)
-delivery_events["on_time_flag"] = delivery_events["on_time_flag"].map(delivery_events_on_time_flag)
 delivery_events["location_state"] = delivery_events["location_state"].map(states_map_dict)
 delivery_events["location_city"] = delivery_events["location_city"].map(cities_map_dict)
 
@@ -327,9 +332,9 @@ loads.revenue = pd.to_numeric(loads["revenue"], errors="coerce")
 loads.fuel_surcharge = pd.to_numeric(loads["fuel_surcharge"], errors="coerce")
 loads.accessorial_charges = pd.to_numeric(loads["accessorial_charges"], errors="coerce")
 #---
-loads_load_type = categorizer(loads, "load_type")
-loads_load_status = categorizer(loads, "load_status")
-loads_booking_type = categorizer(loads, "booking_type")
+loads_load_type = categorizer_func(loads, "load_type")
+loads_load_status = categorizer_func(loads, "load_status")
+loads_booking_type = categorizer_func(loads, "booking_type")
 #---
 loads["load_type"] = loads["load_type"].map(loads_load_type)
 loads["load_status"] = loads["load_status"].map(loads_load_status)
@@ -345,8 +350,8 @@ maintenance_records.parts_cost = pd.to_numeric(maintenance_records["parts_cost"]
 maintenance_records.total_cost = pd.to_numeric(maintenance_records["total_cost"], errors="coerce")
 maintenance_records.downtime_hours = pd.to_numeric(maintenance_records["downtime_hours"], errors="coerce")
 #---
-maintenance_records_maintenance_type = categorizer(maintenance_records, "maintenance_type")
-maintenance_records_service_description = categorizer(maintenance_records, "service_description")
+maintenance_records_maintenance_type = categorizer_func(maintenance_records, "maintenance_type")
+maintenance_records_service_description = categorizer_func(maintenance_records, "service_description")
 #---
 maintenance_records["maintenance_type"] = maintenance_records["maintenance_type"].map(maintenance_records_maintenance_type)
 maintenance_records["service_description"] = maintenance_records["service_description"].map(maintenance_records_service_description)
@@ -361,16 +366,10 @@ safety_incidents.cargo_damage_cost = pd.to_numeric(safety_incidents["cargo_damag
 safety_incidents.claim_amount = pd.to_numeric(safety_incidents["claim_amount"], errors="coerce")
 safety_incidents.preventable_flag = safety_incidents["preventable_flag"].astype(bool)
 #---
-safety_incidents_incident_type = categorizer(safety_incidents, "incident_type")
-safety_incidents_at_fault_flag = categorizer(safety_incidents, "at_fault_flag")
-safety_incidents_injury_flag = categorizer(safety_incidents, "injury_flag")
-safety_incidents_preventable_flag = categorizer(safety_incidents, "preventable_flag")
-safety_incidents_description = categorizer(safety_incidents, "description")
+safety_incidents_incident_type = categorizer_func(safety_incidents, "incident_type")
+safety_incidents_description = categorizer_func(safety_incidents, "description")
 #---
 safety_incidents["incident_type"] = safety_incidents["incident_type"].map(safety_incidents_incident_type)
-safety_incidents["at_fault_flag"] = safety_incidents["at_fault_flag"].map(safety_incidents_at_fault_flag)
-safety_incidents["injury_flag"] = safety_incidents["injury_flag"].map(safety_incidents_injury_flag)
-safety_incidents["preventable_flag"] = safety_incidents["preventable_flag"].map(safety_incidents_preventable_flag)
 safety_incidents["description"] = safety_incidents["description"].map(safety_incidents_description)
 safety_incidents["location_state"] = safety_incidents["location_state"].map(states_map_dict)
 safety_incidents["location_city"] = safety_incidents["location_city"].map(cities_map_dict)
@@ -383,7 +382,7 @@ trips.fuel_gallons_used = pd.to_numeric(trips["fuel_gallons_used"], errors="coer
 trips.average_mpg = pd.to_numeric(trips["average_mpg"], errors="coerce")
 trips.idle_time_hours = pd.to_numeric(trips["idle_time_hours"], errors="coerce")
 #---
-trips_trip_status = categorizer(trips, "trip_status")
+trips_trip_status = categorizer_func(trips, "trip_status")
 #---
 trips["trip_status"] = trips["trip_status"].map(trips_trip_status)
 
