@@ -98,6 +98,7 @@ class PrintClass:
     def print_isnull(self):
         for df in self.df:
             os.system('cls' if os.name == 'nt' else 'clear') # for Linux and Mac it returns 'posix'
+            print(df.describe())
             print(df.isnull().sum())
             input("next")
 
@@ -420,10 +421,22 @@ delivery_events.isnull().sum()              # nothing
 fuel_purchases.isnull().sum()               # truck_id: 3880, driver_id: 3988
 loads.isnull().sum()                        # nothing
 maintenance_records.isnull().sum()          # nothing
-safety_incidents.isnull().sum()             # nothing
+safety_incidents.isnull().sum()             # truck_id: 1, driver_id: 1
 trips.isnull().sum()                        # driver_id: 1714, truck_id: 1672, trailer_id: 1680
 driver_monthly_metrics.isnull().sum()       # nothing
 truck_utilization_metrics.isnull().sum()    # nothing
+
+# there are some missing IDs within the given dataset. its obvious that these ids could either be important or unimportant based on the report we are preparing
+# as long as the report is not about trucks, drivers or trailers, we are good to go without them. but if the reports are used for comparisions based on these entities, (like which truck need more fuel) we should get rid of those records
+# also another thing to consider is the total number of records. if the total number of records available is so much, and the number of records with nan values is not that much, its easy to ignore
+# as right now, i want to use a placeholder for null ids, so i can also compare the relationships between null values and some other data later:
+fuel_purchases["truck_id"].fillna("TRK0NULL", inplace=True)
+fuel_purchases["driver_id"].fillna("DRV0NULL", inplace=True)
+trips["driver_id"].fillna("DRV0NULL", inplace=True)
+trips["truck_id"].fillna("TRK0NULL", inplace=True)
+trips["trailer_id"].fillna("TRL0NULL", inplace=True)
+# for safety_incidents (where there is only 2 records with missing data) its easier to drop nan values
+safety_incidents.dropna(inplace=True)
 
 #endregion
 
