@@ -83,6 +83,7 @@ class PrintClass:
     def __init__(self, *df: pd.core.frame.DataFrame):
         self.df = df
 
+    # showing a sample for each and all of the dataframes, one after another, along with their datatypes below them 
     def print_dfs(self, samples: int = 40):   # samples shows the number of rows that will be shown for each itme
         for df in self.df:
             os.system('cls' if os.name == 'nt' else 'clear') # for Linux and Mac it returns 'posix'
@@ -95,6 +96,15 @@ class PrintClass:
             print("\n", df.dtypes)
             input("next")
     
+    # shows info() and describe() for all dataframes
+    def print_info(self):   # showint the description and information of all dataframes
+        for df in self.df:
+            os.system('cls' if os.name == 'nt' else 'clear')
+            print("\n", df.info())
+            print("\n", df.describe())
+            input("next")
+
+    # shows describe() and isnull().sum() for all dataframes
     def print_isnull(self):
         for df in self.df:
             os.system('cls' if os.name == 'nt' else 'clear') # for Linux and Mac it returns 'posix'
@@ -440,6 +450,7 @@ safety_incidents.dropna(inplace=True)
 
 #endregion
 
+#region info
 printer = PrintClass(customers,
     drivers,
     facilities,
@@ -456,7 +467,24 @@ printer = PrintClass(customers,
     truck_utilization_metrics
 )
 
+print(
+    "run printer.print_dfs() for showing a sample of all dataframes and their datatypes",
+    "run printer.print_isnull() for showing a report of null values for all dataframes", 
+    "run printer.print_info() for showing describe() and info() for all dataframes",
+    sep="\n"
+)
 
+#endregion
 
-
+# Average fuel cost in each year/month 
+format_date = lambda x: "{}/{}".format(x.year, x.month)
+format_date = lambda x: "{}/{}".format(x.year, x.month)
+f_month = lambda x: x.month
+f_year = lambda x: x.year
+fuel_purchases["year_month"] = fuel_purchases["purchase_date"].apply(format_date)
+fuel_purchases["year"] = fuel_purchases["purchase_date"].apply(f_year)
+fuel_purchases["month"] = fuel_purchases["purchase_date"].apply(f_month)
+grouped_fuel_purchases = fuel_purchases.groupby(by=[fuel_purchases.year, fuel_purchases.month])["price_per_gallon"].mean() # the indexing becomes a tuple of two items
+grouped_fuel_purchases = grouped_fuel_purchases.reset_index()
+grouped_fuel_purchase["test"] = grouped_fuel_purchases.apply(format_date_2)
 ipdb.set_trace()
