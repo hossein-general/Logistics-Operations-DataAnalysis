@@ -93,6 +93,7 @@ class PrintClass:
             else:
                 print(df.sample(samples))
 
+            print(df.name)
             print("\n", df.dtypes)
             input("next")
     
@@ -100,6 +101,7 @@ class PrintClass:
     def print_info(self):   # showint the description and information of all dataframes
         for df in self.df:
             os.system('cls' if os.name == 'nt' else 'clear')
+            print(df.name)
             print("\n", df.info())
             print("\n", df.describe())
             input("next")
@@ -108,9 +110,15 @@ class PrintClass:
     def print_isnull(self):
         for df in self.df:
             os.system('cls' if os.name == 'nt' else 'clear') # for Linux and Mac it returns 'posix'
+            print(df.name)
             print(df.describe())
             print(df.isnull().sum())
             input("next")
+
+    def print_record_count(self):
+        os.system('cls' if os.name == 'nt' else 'clear') # for Linux and Mac it returns 'posix'
+        for df in self.df:
+            print(df.name, ": ", len(df), sep="")
 
 
 # applying some modifications to pandas displaying system
@@ -121,23 +129,37 @@ script_dir=Path(__file__).parent    # path to the current directory
 
 # Core Entities
 customers = pd.read_csv((script_dir / r'logistics/Core Entities/customers.csv').resolve())
+customers.name = "customers"
 drivers = pd.read_csv((script_dir / r'logistics/Core Entities/drivers.csv').resolve())
+drivers.name = "drivers"
 facilities = pd.read_csv((script_dir / r'logistics/Core Entities/facilities.csv').resolve())
+facilities.name = "facilities"
 routes = pd.read_csv((script_dir / r'logistics/Core Entities/routes.csv').resolve())
+routes.name = "routes"
 trailers = pd.read_csv((script_dir / r'logistics/Core Entities/trailers.csv').resolve())
+trailers.name = "trailers"
 trucks = pd.read_csv((script_dir / r'logistics/Core Entities/trucks.csv').resolve())
+trucks.name = "trucks"
 
 # Operational Transactions
 delivery_events = pd.read_csv((script_dir / r'logistics/Operational Transactions/delivery_events.csv').resolve())
+delivery_events.name = "delivery_events"
 fuel_purchases = pd.read_csv((script_dir / r'logistics/Operational Transactions/fuel_purchases.csv').resolve())
+fuel_purchases.name = "fuel_purchases"
 loads = pd.read_csv((script_dir / r'logistics/Operational Transactions/loads.csv').resolve())
+loads.name = "loads"
 maintenance_records = pd.read_csv((script_dir / r'logistics/Operational Transactions/maintenance_records.csv').resolve())
+maintenance_records.name = "maintenance_records"
 safety_incidents = pd.read_csv((script_dir / r'logistics/Operational Transactions/safety_incidents.csv').resolve())
+safety_incidents.name = "safety_incidents"
 trips = pd.read_csv((script_dir / r'logistics/Operational Transactions/trips.csv').resolve())
+trips.name = "trips"
 
 # Aggregated Analytics
 driver_monthly_metrics = pd.read_csv((script_dir / r'logistics/Aggregated Analytics/driver_monthly_metrics.csv').resolve())
+driver_monthly_metrics.name = "driver_monthly_metrics"
 truck_utilization_metrics = pd.read_csv((script_dir / r'logistics/Aggregated Analytics/truck_utilization_metrics.csv').resolve())
+truck_utilization_metrics.name = "truck_utilization_metrics"
 
 
 #region Transforming Data
@@ -485,6 +507,7 @@ fuel_purchases["year_month"] = fuel_purchases["purchase_date"].apply(format_date
 fuel_purchases["year"] = fuel_purchases["purchase_date"].apply(f_year)
 fuel_purchases["month"] = fuel_purchases["purchase_date"].apply(f_month)
 grouped_fuel_purchases = fuel_purchases.groupby(by=[fuel_purchases.year, fuel_purchases.month])["price_per_gallon"].mean() # the indexing becomes a tuple of two items
-grouped_fuel_purchases = grouped_fuel_purchases.reset_index()
-grouped_fuel_purchase["test"] = grouped_fuel_purchases.apply(format_date_2)
+grouped_fuel_purchases.index = grouped_fuel_purchases.index.map(lambda x: f"{x[0]}/{x[1]}")
+# grouped_fuel_purchases = grouped_fuel_purchases.reset_index()
+# grouped_fuel_purchase["test"] = grouped_fuel_purchases.apply(format_date_2)
 ipdb.set_trace()
