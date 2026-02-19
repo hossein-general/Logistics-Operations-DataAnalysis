@@ -1,4 +1,9 @@
 #region Import Libraries
+
+# ===============================
+# Import Libraries
+# ===============================
+
 # main imports
 import numpy as np
 import pandas as pd
@@ -8,6 +13,7 @@ import matplotlib.pyplot as plt
 import ipdb     # for debugging purposes
 from pathlib import Path    # for finding the relative path to datasets
 import os   # for checking the operating system (linux, windows, mac) and using the relevant command to clear the screen
+import seaborn as sb
 #region Importing CSV files
 
 
@@ -39,12 +45,18 @@ class OpenHoursConvert:
         self.close_time = []
         self.flag_24_7 = []
 
-    # convert time from AM/PM style to 24-hour style and return the resaulted value
+    # convert time from AM/PM style to 24-hour style and return the resulted value
     def convert_to_24_hour(self, time: str):
         if "AM" in time:
-            time = "{}:00".format(time.strip("AM"))
+            if time.strip("AM") == "12":
+                time = "00:00"
+            else:
+                time = "{}:00".format(time.strip("AM"))
         elif "PM" in time:
-            time = "{}:00".format(int(time.strip("PM")) + 12)
+            if time.strip("PM") == "12":
+                time = "12:00"
+            else:
+                time = "{}:00".format(int(time.strip("PM")) + 12)
         return time
 
     def column_convert(self, item: str):
@@ -68,26 +80,35 @@ class OpenHoursConvert:
     def generate_columns(self):
         self.df["open_time"] = self.open_time
         self.df['open_time'] = pd.to_datetime(self.df['open_time'])
-        self.df['open_time'] = [(time.time() if time is not pd.NaT else time) for time in self.df['open_time']]
+        self.df['open_time'] = [(time.time() if pd.notna(time) else time) for time in self.df['open_time']]
 
         self.df["close_time"] = self.close_time
         self.df['close_time'] = pd.to_datetime(self.df['close_time'])
-        self.df['close_time'] = [(time.time() if time is not pd.NaT else time) for time in self.df['close_time']]
+        self.df['close_time'] = [(time.time() if pd.notna(time) else time) for time in self.df['close_time']]
 
         self.df["is_24_7_flag"] = self.flag_24_7
 
 
 
-# Class to print each datasets content one by one (for making sure that everything is ok)
+# Class to print each dataset contents one by one (for making sure that everything is ok)
 class PrintClass:
     def __init__(self, *df: pd.core.frame.DataFrame):
         self.df = df
 
-    # showing a sample for each and all of the dataframes, one after another, along with their datatypes below them 
-    def print_dfs(self, samples: int = 40):   # samples shows the number of rows that will be shown for each itme
+    def help(self):
+        print(
+            "run printer.help() for showing this menue",
+            "run printer.print_dfs() for showing a sample of each dataframe and their datatypes",
+            "run printer.print_isnull() for showing a report of null values for all dataframes", 
+            "run printer.print_info() for showing describe() and info() for all dataframes",
+            sep="\n"
+        )
+
+    # showing a sample of each dataframe, one after another, along with their datatypes below them 
+    def print_dfs(self, samples: int = 40):   # samples shows the number of rows that will be shown for each item
         for df in self.df:
             os.system('cls' if os.name == 'nt' else 'clear') # for Linux and Mac it returns 'posix'
-            # in order to prevent errors being raised, we should first check the number of items within a dataframe
+            # in order to prevent errors being raised, we should first check the number of items in a dataframe
             if len(df) <= samples:
                 print(df)
             else:
@@ -98,7 +119,7 @@ class PrintClass:
             input("next")
     
     # shows info() and describe() for all dataframes
-    def print_info(self):   # showint the description and information of all dataframes
+    def print_info(self):   # showing the description and information of all dataframes
         for df in self.df:
             os.system('cls' if os.name == 'nt' else 'clear')
             print(df.name)
@@ -123,82 +144,84 @@ class PrintClass:
 
 # applying some modifications to pandas displaying system
 pd.options.display.max_rows=200
+pd.options.display.max_columns = None
+pd.options.display.width = 120
 
 # preparing the relative path
 script_dir=Path(__file__).parent    # path to the current directory
 
+def csv_loader(the_path, filename):
+    df = pd.read_csv((script_dir / the_path / filename).resolve())
+    df.name = filename.replace(".csv","")
+    return df
+
 # Core Entities
-customers = pd.read_csv((script_dir / r'logistics/Core Entities/customers.csv').resolve())
-customers.name = "customers"
-drivers = pd.read_csv((script_dir / r'logistics/Core Entities/drivers.csv').resolve())
-drivers.name = "drivers"
-facilities = pd.read_csv((script_dir / r'logistics/Core Entities/facilities.csv').resolve())
-facilities.name = "facilities"
-routes = pd.read_csv((script_dir / r'logistics/Core Entities/routes.csv').resolve())
-routes.name = "routes"
-trailers = pd.read_csv((script_dir / r'logistics/Core Entities/trailers.csv').resolve())
-trailers.name = "trailers"
-trucks = pd.read_csv((script_dir / r'logistics/Core Entities/trucks.csv').resolve())
-trucks.name = "trucks"
+current_path = "logistics/Core Entities" # path to Core Entities
+customers = csv_loader(current_path, "customers.csv")
+drivers = csv_loader(current_path, "drivers.csv")
+facilities = csv_loader(current_path, "facilities.csv")
+routes = csv_loader(current_path, "routes.csv")
+trailers = csv_loader(current_path, "trailers.csv")
+trucks = csv_loader(current_path, "trucks.csv")
 
 # Operational Transactions
-delivery_events = pd.read_csv((script_dir / r'logistics/Operational Transactions/delivery_events.csv').resolve())
-delivery_events.name = "delivery_events"
-fuel_purchases = pd.read_csv((script_dir / r'logistics/Operational Transactions/fuel_purchases.csv').resolve())
-fuel_purchases.name = "fuel_purchases"
-loads = pd.read_csv((script_dir / r'logistics/Operational Transactions/loads.csv').resolve())
-loads.name = "loads"
-maintenance_records = pd.read_csv((script_dir / r'logistics/Operational Transactions/maintenance_records.csv').resolve())
-maintenance_records.name = "maintenance_records"
-safety_incidents = pd.read_csv((script_dir / r'logistics/Operational Transactions/safety_incidents.csv').resolve())
-safety_incidents.name = "safety_incidents"
-trips = pd.read_csv((script_dir / r'logistics/Operational Transactions/trips.csv').resolve())
-trips.name = "trips"
+current_path = "logistics/Operational Transactions" # path to Operational Transactions
+delivery_events = csv_loader(current_path, "delivery_events.csv")
+fuel_purchases = csv_loader(current_path, "fuel_purchases.csv")
+loads = csv_loader(current_path, "loads.csv")
+maintenance_records = csv_loader(current_path, "maintenance_records.csv")
+safety_incidents = csv_loader(current_path, "safety_incidents.csv")
+trips = csv_loader(current_path, "trips.csv")
 
 # Aggregated Analytics
-driver_monthly_metrics = pd.read_csv((script_dir / r'logistics/Aggregated Analytics/driver_monthly_metrics.csv').resolve())
-driver_monthly_metrics.name = "driver_monthly_metrics"
-truck_utilization_metrics = pd.read_csv((script_dir / r'logistics/Aggregated Analytics/truck_utilization_metrics.csv').resolve())
-truck_utilization_metrics.name = "truck_utilization_metrics"
+current_path = "logistics/Aggregated Analytics" # path to Aggregated Analytics
+driver_monthly_metrics = csv_loader(current_path, "driver_monthly_metrics.csv")
+truck_utilization_metrics = csv_loader(current_path, "truck_utilization_metrics.csv")
 
 
 #region Transforming Data
 # **based on the database diagram
-# NOTE most of these convertings are not necessary as they are already done during the csv importing process, but i rather do that manually too, in case something went wrong throughout the process
+# NOTE most of these conversions are not necessary as they are already done during the csv importing process, but i rather do that manually too, in case something went wrong throughout the process
 # TODO make a function that does all these works itself, and you only pass the datatype you want, with a list of columns to convert automatically
 # TODO make some difference between integer and float numbers conversion by adding some formatting feature for each (like explicitly mention the float values to have two floating point numbers)
 
 
+# TL;DR: categorizes items within a column, gives each one an integer index for better performance
 # dict creator
 # gets: dataframe, column name
 # returns: an indexed dictionary of each category within that column of that dataframe
 # this lambda function aims to generate a dictionary, using the groupby funciton to get a generator of a column within the dataframe, containting tuples for each group. 
 # first item in each tuple is one of groups names, so we turn them into a single list, check the len, then create a range object based on the length. the we map the list of 
-# categories with the numbers within the newly generated range object. this resaults in a list of tuples 
+# categories with the numbers within the newly generated range object. this results in a list of tuples 
 # each tuple contains 2 values, the first one is the name and the second one is the index. then we pass the whole thing into dict() function to create a dictionary
 # these dictionaries are used as maps for turning object type values into numeric types in our dataframes
 categorizer_lambda = lambda df, column: dict(zip(x:=[i[0] for i in df.groupby(column)], range(len(x))))
 
 # this one is a function version for the previous lambda function:
 def categorizer_func(df: pd.core.frame.DataFrame, column: str):
-    gen = df.groupby(column)
+    gen = df.groupby(column) # gen stands for generator
     groups = []
     for i in gen:
         groups.append(i[0])
-    category_dict = dict(zip(groups, range(len(groups))))
+    
+    if len(groups) == 2 and "Active" in groups:
+        category_dict = {"Active":1, "Inactive":0}
+    else:
+        category_dict = dict(zip(groups, range(len(groups))))
+
     return category_dict
 
 
-# TODO make a process that gets a sample of about 30 rows of each column of a data frame, then if the number of groups found was samaller than a certain number, generate a map dictionary automatically for that specific column, and applies it by itself.
+# TODO make a process that gets a sample of about 30 rows of each column of a data frame, then if the number of groups found was smaller than a certain number, generate a map dictionary automatically for that specific column, and applies it by itself.
 # the previous idea requires a more dynamic design of data frames. something like a container class object for each dataframe that could also hold map dictionaries within themselves
 # also add a function to detect columns with only 2 categories, and convert them into boolean types
 
 # TODO convert ids into integer, and separate them (i think it would turn out better than string)
 
 # general maps
-# TODO combine similar map dictionaries to make a single refrence dictionary
+# TODO combine similar map dictionaries to make a single reference dictionary
 # states:
-# this dictionary contains all states used within this dataset. it will be used to map satets as integers in tables
+# this dictionary contains all states used within this dataset. it will be used to map states as integers in tables
 drivers_license_state = categorizer_func(drivers, "license_state")
 facilities_state = categorizer_func(facilities, "state")
 routes_origin_state = categorizer_func(routes, "origin_state")
@@ -215,10 +238,11 @@ states_map_dict = {
     **fuel_purchases_location_state, 
     **safety_incidents_location_state, 
 }
+states_map_dict = {key:value for value, key in enumerate([key for key in states_map_dict])}
 
 # cities:
-# this dictionary contains all cities used within this dataset. it will be used to map satets as integers in tables
-# im not sure if there are any similarties between cites, and if some kind of misspell would have resaulted in indexing the same city for the second time. this may require REGEX
+# this dictionary contains all cities used within this dataset. it will be used to map states as integers in tables
+# im not sure if there are any similarities between cities, and if some kind of misspell would have resulted in indexing the same city for the second time. this may require REGEX
 drivers_home_terminal = categorizer_func(drivers, "home_terminal")
 facilities_city = categorizer_func(facilities, "city")
 routes_origin_city = categorizer_func(routes, "origin_city")
@@ -241,8 +265,10 @@ cities_map_dict = {
     **maintenance_records_facility_location,
     **safety_incidents_location_city,
 }
+cities_map_dict = {key:value for value, key in enumerate([key for key in cities_map_dict])}
 
 
+# TODO: adding an exception handler where im using map function in order to prevent any errors
 
 # customers
 customers.credit_terms_days = pd.to_numeric(customers["credit_terms_days"], errors="coerce")
@@ -374,6 +400,7 @@ loads["load_status"] = loads["load_status"].map(loads_load_status)
 loads["booking_type"] = loads["booking_type"].map(loads_booking_type)
 
 
+# TODO: adding some validation for total_cost to be the same value as the resault of parts_cost and labor_cost sum (assert total_cost ≈ labor_cost + parts_cost)
 # maintenance_records
 maintenance_records.maintenance_date = pd.to_datetime(maintenance_records["maintenance_date"], errors="coerce")
 maintenance_records.odometer_reading = pd.to_numeric(maintenance_records["odometer_reading"], errors="coerce")
@@ -458,10 +485,10 @@ trips.isnull().sum()                        # driver_id: 1714, truck_id: 1672, t
 driver_monthly_metrics.isnull().sum()       # nothing
 truck_utilization_metrics.isnull().sum()    # nothing
 
-# there are some missing IDs within the given dataset. its obvious that these ids could either be important or unimportant based on the report we are preparing
+# there are some missing IDs within the given dataset. It’s clear that these IDs could be important or not, depending on the report we prepare.
 # as long as the report is not about trucks, drivers or trailers, we are good to go without them. but if the reports are used for comparisions based on these entities, (like which truck need more fuel) we should get rid of those records
-# also another thing to consider is the total number of records. if the total number of records available is so much, and the number of records with nan values is not that much, its easy to ignore
-# as right now, i want to use a placeholder for null ids, so i can also compare the relationships between null values and some other data later:
+# also another thing to consider is the total number of records. if the total number of records available is so much, and the number of records with nan values is not that much, it’s safe to ignore them
+# For now, I will use a placeholder for null IDs, so i can also compare the relationships between null values and some other data later:
 fuel_purchases["truck_id"].fillna("TRK0NULL", inplace=True)
 fuel_purchases["driver_id"].fillna("DRV0NULL", inplace=True)
 trips["driver_id"].fillna("DRV0NULL", inplace=True)
@@ -489,12 +516,8 @@ printer = PrintClass(customers,
     truck_utilization_metrics
 )
 
-print(
-    "run printer.print_dfs() for showing a sample of all dataframes and their datatypes",
-    "run printer.print_isnull() for showing a report of null values for all dataframes", 
-    "run printer.print_info() for showing describe() and info() for all dataframes",
-    sep="\n"
-)
+os.system('cls' if os.name == 'nt' else 'clear') # for Linux and Mac it returns 'posix'
+printer.help()
 
 #endregion
 
