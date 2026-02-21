@@ -97,10 +97,10 @@ class PrintClass:
 
     def help(self):
         print(
-            "run printer.help() for showing this menue",
-            "run printer.print_dfs() for showing a sample of each dataframe and their datatypes",
+            "run printer.print_dfs() for showing a sample of all dataframes and their datatypes",
             "run printer.print_isnull() for showing a report of null values for all dataframes", 
             "run printer.print_info() for showing describe() and info() for all dataframes",
+            "run printer.show() for showing a list of all dataframes and their counts",
             sep="\n"
         )
 
@@ -119,7 +119,7 @@ class PrintClass:
             input("next")
     
     # shows info() and describe() for all dataframes
-    def print_info(self):   # showing the description and information of all dataframes
+    def show(self):   # showing the description and information of all dataframes
         for df in self.df:
             os.system('cls' if os.name == 'nt' else 'clear')
             print(df.name)
@@ -521,16 +521,109 @@ printer.help()
 
 #endregion
 
-# Average fuel cost in each year/month 
-format_date = lambda x: "{}/{}".format(x.year, x.month)
-format_date = lambda x: "{}/{}".format(x.year, x.month)
-f_month = lambda x: x.month
-f_year = lambda x: x.year
-fuel_purchases["year_month"] = fuel_purchases["purchase_date"].apply(format_date)
-fuel_purchases["year"] = fuel_purchases["purchase_date"].apply(f_year)
-fuel_purchases["month"] = fuel_purchases["purchase_date"].apply(f_month)
-grouped_fuel_purchases = fuel_purchases.groupby(by=[fuel_purchases.year, fuel_purchases.month])["price_per_gallon"].mean() # the indexing becomes a tuple of two items
-grouped_fuel_purchases.index = grouped_fuel_purchases.index.map(lambda x: f"{x[0]}/{x[1]}")
+
+#region reports
+# TODO: make a function that runs each report one by one and creates a pd report out of it, exporting it into a custom directory
+
+# preparation:
+# Extract year and month
+loads["year"] = loads["load_date"].dt.year
+loads["year_month"] = loads["load_date"].dt.to_period("M")
+loads["month"] = loads["load_date"].dt.month
+
+
+# Average fuel cost in each year/month ------------------------------------------
+def r0():
+    format_date = lambda x: "{}/{}".format(x.year, x.month)
+    format_date = lambda x: "{}/{}".format(x.year, x.month)
+    f_month = lambda x: x.month
+    f_year = lambda x: x.year
+    fuel_purchases["year_month"] = fuel_purchases["purchase_date"].apply(format_date)
+    fuel_purchases["year"] = fuel_purchases["purchase_date"].apply(f_year)
+    fuel_purchases["month"] = fuel_purchases["purchase_date"].apply(f_month)
+    grouped_fuel_purchases = fuel_purchases.groupby(by=[fuel_purchases.year, fuel_purchases.month])["price_per_gallon"].mean() # the indexing becomes a tuple of two items
+    grouped_fuel_purchases.index = grouped_fuel_purchases.index.map(lambda x: f"{x[0]}/{x[1]}")
+    plt.figure(figsize=(5,5), dpi=100)
+    plt.plot(grouped_fuel_purchases)
+    plt.show()
+
+
+# revenue_per_month_yearly_compared ------------------------------------------
+def r1():
+    # Group and sum revenue
+    monthly_revenue = loads.groupby(["year", "month"])["revenue"].sum().reset_index()
+    
+    # Pivot for grouped bar chart
+    pivot_table = monthly_revenue.pivot(index="month",columns="year",values="revenue").sort_index()
+
+    months = pivot_table.index
+    years = pivot_table.columns
+
+    x = np.arange(len(months))
+    bar_width = 0.8 / len(years)
+
+    plt.figure(figsize=(12,6))
+
+    for i, year in enumerate(years):
+        plt.bar(x + i * bar_width,pivot_table[year],width=bar_width,label=str(year))
+
+    # Calculate global min and max across all years
+    y_min = pivot_table.min().min()
+    y_max = pivot_table.max().max()
+
+    # Apply 20% padding
+    lower_limit = y_min * 0.8
+    upper_limit = y_max * 1.1
+
+    plt.ylim(lower_limit, upper_limit)
+
+    plt.xticks(x + bar_width * (len(years)-1)/2,["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"])
+
+    plt.xlabel("Month")
+    plt.ylabel("Total Revenue")
+    plt.title("Monthly Revenue Comparison by Year")
+    plt.legend(title="Year")
+
+    plt.tight_layout()
+    plt.show()
+
+# Total Revenue per Year ------------------------------------------
+def r2():
+    revenue_per_year = loads.groupby("year")["revenue"].sum().sort_index()
+    
+    plt.figure(figsize=(12,6))
+    plt.bar(revenue_per_year.index, revenue_per_year.values)
+
+    # Calculate min and max
+    y_min = revenue_per_year.min()
+    y_max = revenue_per_year.max()
+
+    # Apply 20% padding
+    lower_limit = y_min * 0.99
+    upper_limit = y_max * 1.01
+    plt.ylim(lower_limit, upper_limit)
+
+    plt.xticks(rotation=45)
+    plt.title("Total Revenue per Month")
+    plt.xlabel("Year-Month")
+    plt.ylabel("Total Revenue")
+    plt.tight_layout()
+    plt.show()
+
+# Total Revenue per Month  ------------------------------------------
+def r3():
+    revenue_per_month = loads.groupby("year_month")["revenue"].sum().sort_index()
+    plt.figure(figsize=(12,6))
+    plt.plot(revenue_per_month.index.astype(str), revenue_per_month.values)
+    plt.xticks(rotation=45)
+    plt.title("Total Revenue per Month")
+    plt.xlabel("Year-Month")
+    plt.ylabel("Total Revenue")
+    plt.tight_layout()
+    plt.show()
+
+#endregion
+
 # grouped_fuel_purchases = grouped_fuel_purchases.reset_index()
 # grouped_fuel_purchase["test"] = grouped_fuel_purchases.apply(format_date_2)
 ipdb.set_trace()
