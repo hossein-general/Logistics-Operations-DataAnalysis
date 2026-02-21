@@ -14,6 +14,10 @@ import ipdb     # for debugging purposes
 from pathlib import Path    # for finding the relative path to datasets
 import os   # for checking the operating system (linux, windows, mac) and using the relevant command to clear the screen
 import seaborn as sb
+
+# extra imports
+import matplotlib.ticker as mtick
+
 #region Importing CSV files
 
 
@@ -621,6 +625,85 @@ def r3():
     plt.ylabel("Total Revenue")
     plt.tight_layout()
     plt.show()
+
+# 
+def r4():
+    # Prepare Revenue per Month ---- 
+    # Ensure datetime
+    loads["load_date"] = pd.to_datetime(loads["load_date"], errors="coerce")
+
+    # Create year-month
+    loads["year_month"] = loads["load_date"].dt.to_period("M")
+
+    # Monthly revenue
+    monthly_revenue = (
+        loads
+        .groupby("year_month")["revenue"]
+        .sum()
+    )
+
+    # Plot (Bar + Line Combo Chart) ----  
+    fuel_purchases["purchase_date"] = pd.to_datetime(
+        fuel_purchases["purchase_date"], errors="coerce"
+    )
+
+    fuel_purchases["year_month"] = fuel_purchases["purchase_date"].dt.to_period("M")
+
+    monthly_fuel_cost = (
+        fuel_purchases
+        .groupby("year_month")["total_cost"]
+        .sum()
+    )
+
+    # Combine Both ---- 
+    financial_df = pd.DataFrame({
+        "Revenue": monthly_revenue,
+        "Fuel_Cost": monthly_fuel_cost
+    }).fillna(0)
+
+    # Fuel cost percentage
+    financial_df["Fuel_%_of_Revenue"] = (
+        financial_df["Fuel_Cost"] / financial_df["Revenue"]
+    ) * 100
+
+    # Convert index to timestamp for plotting
+    financial_df.index = financial_df.index.to_timestamp()
+
+
+    # Plot (Bar + Line Combo Chart) ----
+    fig, ax1 = plt.subplots(figsize=(12,6))
+
+    # Bar chart for Revenue
+    ax1.bar(
+        financial_df.index,
+        financial_df["Revenue"],
+        alpha=0.6,
+        label="Revenue"
+    )
+
+    ax1.set_ylabel("Revenue")
+    ax1.set_xlabel("Month")
+    ax1.set_title("Fuel Cost as % of Revenue")
+
+    # Second axis for percentage
+    ax2 = ax1.twinx()
+
+    ax2.plot(
+        financial_df.index,
+        financial_df["Fuel_%_of_Revenue"],
+        color="red",
+        marker="o",
+        label="Fuel % of Revenue"
+    )
+
+    ax2.set_ylabel("Fuel % of Revenue")
+
+    # Format percentage axis
+    ax2.yaxis.set_major_formatter(mtick.PercentFormatter())
+
+    fig.tight_layout()
+    plt.show()
+
 
 #endregion
 
