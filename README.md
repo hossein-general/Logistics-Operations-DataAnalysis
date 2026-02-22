@@ -37,25 +37,40 @@ company financial performance
 these charts show total company revenue over the given time span:
 these are the 4 reports prepared for this purpose: 
 1- comparision of revenue change over each month
-2- revenue per year
-3- revenue per month
+This report was created to compare monthly revenue patterns across multiple years and identify seasonal trends or structural changes in business volume. It helps determine whether revenue fluctuations are part of normal seasonality or indicate meaningful shifts in overall performance.
+<!-- TODO add picture -->
+The monthly revenue comparison across 2022–2024 shows a relatively stable revenue structure with moderate seasonal fluctuations rather than extreme growth or decline. Revenues consistently range between roughly 6.5M and 7.7M, suggesting operational stability and steady demand. Some seasonal tendencies appear, such as stronger performance in mid-to-late year months (particularly August 2022 and July 2023), while February tends to be one of the weaker months across years. Although there are minor year-to-year shifts within specific months, there is no clear long-term upward or downward revenue trend over the three-year period, indicating that overall business volume remained steady. This stability, combined with declining fuel costs observed earlier, suggests that profitability conditions may have improved over time even without significant revenue growth.
 
-the resaults are quite self explanetory:
-the company experienced a gap in company income.
-also the company usually experiences the least revenue in February
+2- Total Revenue per Year
+<!-- TODO add picture -->
+Total annual revenue remains highly stable across the three-year period, fluctuating within a narrow range of approximately 86.9M to 87.9M. While 2023 shows a slight dip compared to 2022, revenue recovers in 2024, indicating no significant long-term growth or decline. This stability suggests consistent business volume, making profitability improvements more likely driven by cost efficiency rather than revenue expansion.
 
-4- Fuel Cost as % of Revenue 
+3- Total Revenue per Month 
+<!-- TODO add picture -->
+Monthly revenue remains consistently within the 6.5M–7.7M range across the entire period, showing moderate seasonality rather than volatility. Peaks commonly appear in mid-year months, while February tends to be one of the weaker months. The absence of extreme spikes or drops suggests stable operational demand and predictable freight volume. This consistency supports reliable planning for fleet utilization, staffing, and cash flow management, while also reinforcing that performance improvements are more likely tied to cost control than revenue growth.
+
+4- Average fuel cost in each year/month
+this analysis shows the trends behind fuel cost change over time
+<!-- TODO add picture -->
+The average fuel cost data shows a clear year-over-year decline, with 2022 averaging around 4.19–4.21 per month, dropping to approximately 3.84–3.86 in 2023, and further stabilizing around 3.64–3.66 in 2024. The most significant changes occur between years rather than within them, as monthly fluctuations inside each year are minimal, indicating price stability rather than volatility. This pattern suggests that broader market conditions drove fuel cost reductions over time, easing operational cost pressure after 2022. From a business perspective, this steady decline would likely improve profit margins and reduce fuel-to-revenue ratios, assuming revenue levels remained consistent, making 2024 the most favorable cost environment in the observed period.
+
+5- Fuel Cost as % of Revenue (Financial Health Indicator) 
 Fuel is one of the largest variable expenses in trucking. This metric could tells us:
 - How heavy fuel expenses are relative to income
 - Whether rising fuel prices are eating into profits
 - How efficiently the fleet is operating
+<!-- TODO add picture -->
+The dataset shows that fuel expenses consistently represent a substantial portion of monthly revenue, ranging roughly from 33% to 40% over the three-year period. Early 2022 exhibits the highest ratios, reflecting elevated fuel prices, while the trend gradually declines through 2024 as fuel costs drop. This report highlights how fuel efficiency and cost management directly impact profitability, providing a clear operational KPI for monitoring financial health and identifying periods where fuel optimization could meaningfully improve margins.
 
-5- 
+6- Route Profitability Analysis
 How much profit each route generates after subtracting fuel costs.
 Some routes look busy but barely profitable
 Some long routes may generate high revenue but burn too much fuel
 Some shorter lanes may be extremely efficient
+<!-- TODO add picture -->
+The analysis reveals that several long-haul routes generate exceptionally high profits, with the top lanes producing over 20M in net profit after fuel costs. Routes such as Seattle–Charlotte and Philadelphia–Seattle lead performance, indicating strong revenue generation combined with relatively controlled fuel expenses. Interestingly, while total revenues are fairly close among the top routes, differences in fuel cost levels slightly impact final profitability, highlighting the importance of cost efficiency even on high-revenue lanes.
 
+A noticeable pattern is the frequent appearance of cities like Seattle, Charlotte, Columbus, and Portland among the most profitable routes, suggesting these locations function as strong demand hubs within the network. This insight can guide strategic decisions such as prioritizing equipment allocation, strengthening customer contracts in these corridors, or analyzing what makes these lanes structurally more profitable compared to others.
 
 Terminology:
 MPG: MPG stands for miles per gallon and measures a vehicle's fuel efficiency by indicating how many miles it can travel on a single gallon of gasoline or diesel.

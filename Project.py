@@ -243,7 +243,7 @@ states_map_dict = {
     **safety_incidents_location_state, 
 }
 states_map_dict = {key:value for value, key in enumerate([key for key in states_map_dict])}
-
+states_map_dict_ref = {v: k for k, v in states_map_dict.items()}
 # cities:
 # this dictionary contains all cities used within this dataset. it will be used to map states as integers in tables
 # im not sure if there are any similarities between cities, and if some kind of misspell would have resulted in indexing the same city for the second time. this may require REGEX
@@ -270,6 +270,7 @@ cities_map_dict = {
     **safety_incidents_location_city,
 }
 cities_map_dict = {key:value for value, key in enumerate([key for key in cities_map_dict])}
+cities_map_dict_ref = {v: k for k, v in cities_map_dict.items()}
 
 
 # TODO: adding an exception handler where im using map function in order to prevent any errors
@@ -537,23 +538,6 @@ loads["month"] = loads["load_date"].dt.month
 fuel_purchases["year_month"] = fuel_purchases["purchase_date"].dt.to_period("M")
 
 
-#region Average fuel cost in each year/month 
-def r0():
-    format_date = lambda x: "{}/{}".format(x.year, x.month)
-    format_date = lambda x: "{}/{}".format(x.year, x.month)
-    f_month = lambda x: x.month
-    f_year = lambda x: x.year
-    fuel_purchases["year_month"] = fuel_purchases["purchase_date"].apply(format_date)
-    fuel_purchases["year"] = fuel_purchases["purchase_date"].apply(f_year)
-    fuel_purchases["month"] = fuel_purchases["purchase_date"].apply(f_month)
-    grouped_fuel_purchases = fuel_purchases.groupby(by=[fuel_purchases.year, fuel_purchases.month])["price_per_gallon"].mean() # the indexing becomes a tuple of two items
-    grouped_fuel_purchases.index = grouped_fuel_purchases.index.map(lambda x: f"{x[0]}/{x[1]}")
-    plt.figure(figsize=(5,5), dpi=100)
-    plt.plot(grouped_fuel_purchases)
-    plt.show()
-
-#endregion
-
 #region revenue_per_month_yearly_compared
 def r1():
     # Group and sum revenue
@@ -591,7 +575,10 @@ def r1():
     plt.legend(title="Year")
 
     plt.tight_layout()
-    plt.show()
+    
+    plt.savefig(f"{script_dir}/media/report_01.jpg", bbox_inches="tight")
+    if __name__ == "__main__":
+        plt.show()
 
 #endregion
 
@@ -616,7 +603,10 @@ def r2():
     plt.xlabel("Year-Month")
     plt.ylabel("Total Revenue")
     plt.tight_layout()
-    plt.show()
+    
+    plt.savefig(f"{script_dir}/media/report_02.jpg", bbox_inches="tight")
+    if __name__ == "__main__":
+        plt.show()
 
 #endregion
 
@@ -630,13 +620,33 @@ def r3():
     plt.xlabel("Year-Month")
     plt.ylabel("Total Revenue")
     plt.tight_layout()
-    plt.show()
+    
+    plt.savefig(f"{script_dir}/media/report_03.jpg", bbox_inches="tight")
+    if __name__ == "__main__":
+        plt.show()
 
 #endregion
 
-#region Fuel Cost as % of Revenue (Financial Health Indicator) 
+#region Average fuel cost in each year/month 
 def r4():
-    ipdb.set_trace()
+    format_date = lambda x: "{}/{}".format(x.year, x.month)
+    format_date = lambda x: "{}/{}".format(x.year, x.month)
+    f_month = lambda x: x.month
+    f_year = lambda x: x.year
+    fuel_purchases["year"] = fuel_purchases["purchase_date"].apply(f_year)
+    fuel_purchases["month"] = fuel_purchases["purchase_date"].apply(f_month)
+    grouped_fuel_purchases = fuel_purchases.groupby(by=[fuel_purchases.year, fuel_purchases.month])["price_per_gallon"].mean() # the indexing becomes a tuple of two items
+    grouped_fuel_purchases.index = grouped_fuel_purchases.index.map(lambda x: f"{x[0]}/{x[1]}")
+    plt.figure(figsize=(5,5), dpi=100)
+    plt.plot(grouped_fuel_purchases)
+    plt.savefig(f"{script_dir}/media/report_04.jpg", bbox_inches="tight")
+    if __name__ == "__main__":
+        plt.show()
+    
+#endregion
+
+#region Fuel Cost as % of Revenue (Financial Health Indicator) 
+def r5():
     # Prepare Revenue per Month ---- 
     monthly_revenue = loads.groupby("year_month")["revenue"].sum()
 
@@ -674,13 +684,73 @@ def r4():
     ax2.yaxis.set_major_formatter(mtick.PercentFormatter())
 
     fig.tight_layout()
-    plt.show()
+    
+    plt.savefig(f"{script_dir}/media/report_05.jpg", bbox_inches="tight")
+    if __name__ == "__main__":
+        plt.show()
 
 #endregion
 
+#region Route Profitability Analysis
+def r6():
+    # Merge Everything ----
+    # Merge loads with trips
+    loads_trips = loads.merge(trips, on="load_id", how="inner")
+
+    # Merge fuel purchases
+    loads_trips_fuel = loads_trips.merge(fuel_purchases,on="trip_id",how="inner"    )
+
+    # Merge route info
+    full_data = loads_trips_fuel.merge(routes,on="route_id",how="inner")
+
+    # Calculate Profit per Route ----
+    route_profit = full_data.groupby("route_id").agg(total_revenue=("revenue", "sum"),total_fuel_cost=("total_cost", "sum"))
+    route_profit["profit"] = route_profit["total_revenue"] - route_profit["total_fuel_cost"]
+    route_profit = route_profit.sort_values("profit", ascending=False)
+
+    # Plot Top 10 Most Profitable Routes ----
+    top_routes = route_profit.head(10)
+
+    routes.set_index("route_id", inplace=True)
+    # Create formatted route labels
+    # get_state = lambda id: 
+    format_label = lambda row: f"{cities_map_dict_ref[routes.loc[row.name, 'origin_city']]}({states_map_dict_ref[routes.loc[row.name, 'origin_state']]}) - {cities_map_dict_ref[routes.loc[row.name, 'destination_city']]}({states_map_dict_ref[routes.loc[row.name, 'destination_state']]})"
+    route_labels = top_routes.apply(
+        format_label,
+        axis=1
+    )
+
+    plt.figure(figsize=(12,6))
+    bars = plt.bar(route_labels, top_routes["profit"])
+
+    # Add labels
+    for bar in bars:
+        height = bar.get_height()
+        plt.text(bar.get_x() + bar.get_width()/2,height,f"{height:,.0f}",ha='center',va='bottom')
+
+    plt.xticks(rotation=45)
+    plt.ylabel("Profit")
+    plt.title("Top 10 Most Profitable Routes")
+
+    # Dynamic Y limit
+    y_min = top_routes["profit"].min()
+    y_max = top_routes["profit"].max()
+    plt.ylim(y_min * 0.8, y_max * 1.2)
+
+    plt.tight_layout()
+    
+    plt.savefig(f"{script_dir}/media/report_06.jpg", bbox_inches="tight")
+    if __name__ == "__main__":
+        plt.show()
+
+    
+
+#endregion 
+
 #endregion
 
-# grouped_fuel_purchases = grouped_fuel_purchases.reset_index()
-# grouped_fuel_purchase["test"] = grouped_fuel_purchases.apply(format_date_2)
-r4()
-ipdb.set_trace()
+
+# TODO add a runner file that runs this file's functions without showing charts. (only saving chart pictures + no ipdb tracing)
+if __name__ == "__main__":
+    ipdb.set_trace()
+
