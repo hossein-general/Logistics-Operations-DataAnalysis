@@ -1,53 +1,44 @@
-<!-- TODO: recheck the whole readme sectoin with chatgpt -->
-this project aims to analyze logistic data from a trucking company
-this git repository also holds data for python notes which were writen from MFT DataAnalysis Course i completed lately, and will be removed in later commits
+This project aims to analyze operational logistics data from a trucking company in order to evaluate financial performance, cost efficiency, and route-level profitability. The repository also temporarily contains personal Python notes from the MFT Data Analysis Course, which will be removed in future revisions to maintain a clean project structure.
+The dataset used in this analysis is available on Kaggle:
+https://www.kaggle.com/datasets/yogape/logistics-operations-database
+It represents a simulated yet realistic relational database of a Class 8 trucking company covering the years 2022–2024. The data includes interconnected tables for drivers, trucks, customers, routes, loads, fuel purchases, maintenance records, and performance metrics. Due to its multi-table relationships, financial transactions, and time-series structure, the dataset requires proper data modeling, joins, and analytical techniques to extract meaningful insights. Its relational design makes it well-suited for dashboard development, cost analysis, and profitability evaluation.
+A database schema diagram illustrating the relationships between tables is available at:
+https://dbdiagram.io/d/Logistics-Operations-Database-6976750ebd82f5fce28c51a8
+The diagram was created using DBML (Database Markup Language).
+Data Preparation Principles
+The following principles were applied during data preparation and transformation:
+•	Categorical Encoding: Text-based categorical variables were converted into indexed numeric representations to reduce memory usage and improve grouping and join performance.
+•	Type Enforcement: Explicit data type assignments were applied to ensure consistency in calculations, comparisons, and time-based analysis.
+•	Referential Consistency: Shared attributes such as states and cities were consistently encoded across tables to maintain relational integrity and prevent mismatches during joins.
+Implementation Overview
+The analytical workflow was structured as follows:
+•	Required Python libraries were imported and configured.
+•	A custom class was implemented to normalize operating hours by separating opening and closing times and generating a boolean flag for 24/7 operations.
+•	A utility class was developed to simplify inspection and descriptive output across all 13 dataframes.
+•	Pandas display settings were adjusted to improve readability during exploratory analysis.
+•	Relative file paths were prepared, and CSV files were loaded into structured dataframes.
+•	A reusable function was implemented to encode categorical columns and generate dictionary mappings for indexed values. These mappings were reused across multiple tables where applicable to reduce redundancy.
+•	A comprehensive data cleaning phase followed, including:
+o	Enforcing appropriate data types for each column.
+o	Normalizing operating hours into structured time columns to enable temporal analysis.
+o	Encoding selected categorical columns to improve computational performance.
+o	Handling missing values using appropriate strategies, primarily through controlled fillna() operations to preserve analytical flexibility. In cases where missing values were minimal and unlikely to impact results, selected rows were removed.
 
-dataset link: https://www.kaggle.com/datasets/yogape/logistics-operations-database
-This dataset represents a simulated but realistic operational database of a Class 8 trucking company covering three years (2022–2024). It includes interconnected tables for drivers, trucks, customers, routes, loads, fuel purchases, maintenance, and performance metrics
-Because it contains multi-table relationships, financial transactions, and time-series operational data, it requires proper data modeling, joins, and analytical techniques to extract insights. Its structure makes it a strong choice for building dashboards, performing cost and profitability analysis, and demonstrating real-world logistics analytics skills rather than basic descriptive reporting.
 
-this diagram shows the relations between 
-<!-- TODO: i should add the image of the diagram here, using an image hosting service -->
-link to the diagram: https://dbdiagram.io/d/Logistics-Operations-Database-6976750ebd82f5fce28c51a8
-the markup language used to create this diagram is DBML
+The reports are as below:
 
-A number of principles followed in this report for transfering data:
-- categorical encoding: Converting text categories into numeric representations reduces memory usage and speeds up comparisons, grouping, and joins.
-- type enforcement: Explicitly enforcing data types prevents unexpected behavior in calculations, comparisons, and time-based operations.
-- referential consistency: Ensuring consistent encoding of shared attributes (e.g., states or cities) preserves integrity across joins and prevents relational mismatches.
-
-allow me to walk you through what ive done within this report:
-first i imported some packages and libraries. (you can tell me to add any other library and i will add them too for my reports)
-- then i craeted a class that ill later be using for splitting certain columns cotaining open and close time, which putting it simple, has to get the dataframe itself, and perform some operations on it to separate start time from end time, and generate a column containing a boolean flag for companies that are open 24/7
-- then there is a PrintClass class, which is kind of a debugging toll for me. it helps me print some descriptions for all 13 dataframes i have easier.
-- there are some modifications in the display setting of pandas
-- preparing the relative path
-- then I'll be reading the csv files containing data for each table
-- also there is function which categorizes items within a column, gives each one an integer index for better performance. it will be used for the cleaning section (next part)
-- then there is this huge section, trying to transfer data and cleaning them, by changing each columns data type to what it should be, and applying some changes in some of them in order to improve the performance 
-** Operating hours were normalized into structured time columns to enable temporal performance analysi
-** some columns data will be categorized and indexed in order to improve performance, in these cases there are some variables included and named based on the dataframeName_columName which contain the dictionary showing what each index represents in that column
-** some of these dictionaries are used across multiple dataframes which will help reducing redundant data (like state names, city names, etc.)
-- after preparing data types and indexing them, we will deal with nan and nat data within each dataframe. comments in this section represent the mindset i had behind what i did
-** i mostly used the fillna option and filled nan data with a placeholder so i can prepare some reports on that nan data itself, also some of na values are kept, and there is one case i droped rows with nan values as i think i had a reach amount of data within that dataframe and an small amount of nan values will not matter that much
-- then there is this simple report i created as a test. 
-
-now to the main reports
-company financial performance
-these charts show total company revenue over the given time span:
-these are the 4 reports prepared for this purpose: 
-1- comparision of revenue change over each month
-This report was created to compare monthly revenue patterns across multiple years and identify seasonal trends or structural changes in business volume. It helps determine whether revenue fluctuations are part of normal seasonality or indicate meaningful shifts in overall performance.
-<!-- TODO add picture -->
-The monthly revenue comparison across 2022–2024 shows a relatively stable revenue structure with moderate seasonal fluctuations rather than extreme growth or decline. Revenues consistently range between roughly 6.5M and 7.7M, suggesting operational stability and steady demand. Some seasonal tendencies appear, such as stronger performance in mid-to-late year months (particularly August 2022 and July 2023), while February tends to be one of the weaker months across years. Although there are minor year-to-year shifts within specific months, there is no clear long-term upward or downward revenue trend over the three-year period, indicating that overall business volume remained steady. This stability, combined with declining fuel costs observed earlier, suggests that profitability conditions may have improved over time even without significant revenue growth.
-
-2- Total Revenue per Year
+1- Total Revenue per Year
 <!-- TODO add picture -->
 Total annual revenue remains highly stable across the three-year period, fluctuating within a narrow range of approximately 86.9M to 87.9M. While 2023 shows a slight dip compared to 2022, revenue recovers in 2024, indicating no significant long-term growth or decline. This stability suggests consistent business volume, making profitability improvements more likely driven by cost efficiency rather than revenue expansion.
 
-3- Total Revenue per Month 
+2- Total Revenue per Month 
 <!-- TODO add picture -->
 Monthly revenue remains consistently within the 6.5M–7.7M range across the entire period, showing moderate seasonality rather than volatility. Peaks commonly appear in mid-year months, while February tends to be one of the weaker months. The absence of extreme spikes or drops suggests stable operational demand and predictable freight volume. This consistency supports reliable planning for fleet utilization, staffing, and cash flow management, while also reinforcing that performance improvements are more likely tied to cost control than revenue growth.
+
+3- comparision of revenue change over each month
+This report was created to compare monthly revenue patterns across multiple years and identify seasonal trends or structural changes in business volume. It helps determine whether revenue fluctuations are part of normal seasonality or indicate meaningful shifts in overall performance.
+<!-- TODO add picture -->
+The monthly revenue comparison across 2022–2024 shows a relatively stable revenue structure with moderate seasonal fluctuations rather than extreme growth or decline. Revenues consistently range between roughly 6.5M and 7.7M, suggesting operational stability and steady demand. Some seasonal tendencies appear, such as stronger performance in mid-to-late year months (particularly August 2022 and July 2023), while February tends to be one of the weaker months across years. Although there are minor year-to-year shifts within specific months, there is no clear long-term upward or downward revenue trend over the three-year period, indicating that overall business volume remained steady. This stability, combined with declining fuel costs observed earlier, suggests that profitability conditions may have improved over time even without significant revenue growth.
 
 4- Average fuel cost in each year/month
 this analysis shows the trends behind fuel cost change over time

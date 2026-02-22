@@ -538,8 +538,53 @@ loads["month"] = loads["load_date"].dt.month
 fuel_purchases["year_month"] = fuel_purchases["purchase_date"].dt.to_period("M")
 
 
-#region revenue_per_month_yearly_compared
+#region Total Revenue per Year 
 def r1():
+    revenue_per_year = loads.groupby("year")["revenue"].sum().sort_index()
+    
+    plt.figure(figsize=(12,6))
+    plt.bar(revenue_per_year.index, revenue_per_year.values)
+
+    # Calculate min and max
+    y_min = revenue_per_year.min()
+    y_max = revenue_per_year.max()
+
+    # Apply 20% padding
+    lower_limit = y_min * 0.99
+    upper_limit = y_max * 1.01
+    plt.ylim(lower_limit, upper_limit)
+
+    plt.xticks(rotation=45)
+    plt.title("Total Revenue per Month")
+    plt.xlabel("Year-Month")
+    plt.ylabel("Total Revenue")
+    plt.tight_layout()
+    
+    plt.savefig(f"{script_dir}/media/report_01.jpg", bbox_inches="tight")
+    if __name__ == "__main__":
+        plt.show()
+
+#endregion
+
+#region Total Revenue per Month 
+def r2():
+    revenue_per_month = loads.groupby("year_month")["revenue"].sum().sort_index()
+    plt.figure(figsize=(12,6))
+    plt.plot(revenue_per_month.index.astype(str), revenue_per_month.values)
+    plt.xticks(rotation=45)
+    plt.title("Total Revenue per Month")
+    plt.xlabel("Year-Month")
+    plt.ylabel("Total Revenue")
+    plt.tight_layout()
+    
+    plt.savefig(f"{script_dir}/media/report_02.jpg", bbox_inches="tight")
+    if __name__ == "__main__":
+        plt.show()
+
+#endregion
+
+#region revenue_per_month_yearly_compared
+def r3():
     # Group and sum revenue
     monthly_revenue = loads.groupby(["year", "month"])["revenue"].sum().reset_index()
     
@@ -574,51 +619,6 @@ def r1():
     plt.title("Monthly Revenue Comparison by Year")
     plt.legend(title="Year")
 
-    plt.tight_layout()
-    
-    plt.savefig(f"{script_dir}/media/report_01.jpg", bbox_inches="tight")
-    if __name__ == "__main__":
-        plt.show()
-
-#endregion
-
-#region Total Revenue per Year 
-def r2():
-    revenue_per_year = loads.groupby("year")["revenue"].sum().sort_index()
-    
-    plt.figure(figsize=(12,6))
-    plt.bar(revenue_per_year.index, revenue_per_year.values)
-
-    # Calculate min and max
-    y_min = revenue_per_year.min()
-    y_max = revenue_per_year.max()
-
-    # Apply 20% padding
-    lower_limit = y_min * 0.99
-    upper_limit = y_max * 1.01
-    plt.ylim(lower_limit, upper_limit)
-
-    plt.xticks(rotation=45)
-    plt.title("Total Revenue per Month")
-    plt.xlabel("Year-Month")
-    plt.ylabel("Total Revenue")
-    plt.tight_layout()
-    
-    plt.savefig(f"{script_dir}/media/report_02.jpg", bbox_inches="tight")
-    if __name__ == "__main__":
-        plt.show()
-
-#endregion
-
-#region Total Revenue per Month 
-def r3():
-    revenue_per_month = loads.groupby("year_month")["revenue"].sum().sort_index()
-    plt.figure(figsize=(12,6))
-    plt.plot(revenue_per_month.index.astype(str), revenue_per_month.values)
-    plt.xticks(rotation=45)
-    plt.title("Total Revenue per Month")
-    plt.xlabel("Year-Month")
-    plt.ylabel("Total Revenue")
     plt.tight_layout()
     
     plt.savefig(f"{script_dir}/media/report_03.jpg", bbox_inches="tight")
