@@ -534,9 +534,10 @@ printer.help()
 loads["year"] = loads["load_date"].dt.year
 loads["year_month"] = loads["load_date"].dt.to_period("M")
 loads["month"] = loads["load_date"].dt.month
+fuel_purchases["year_month"] = fuel_purchases["purchase_date"].dt.to_period("M")
 
 
-# Average fuel cost in each year/month ------------------------------------------
+#region Average fuel cost in each year/month 
 def r0():
     format_date = lambda x: "{}/{}".format(x.year, x.month)
     format_date = lambda x: "{}/{}".format(x.year, x.month)
@@ -551,8 +552,9 @@ def r0():
     plt.plot(grouped_fuel_purchases)
     plt.show()
 
+#endregion
 
-# revenue_per_month_yearly_compared ------------------------------------------
+#region revenue_per_month_yearly_compared
 def r1():
     # Group and sum revenue
     monthly_revenue = loads.groupby(["year", "month"])["revenue"].sum().reset_index()
@@ -591,7 +593,9 @@ def r1():
     plt.tight_layout()
     plt.show()
 
-# Total Revenue per Year ------------------------------------------
+#endregion
+
+#region Total Revenue per Year 
 def r2():
     revenue_per_year = loads.groupby("year")["revenue"].sum().sort_index()
     
@@ -614,7 +618,9 @@ def r2():
     plt.tight_layout()
     plt.show()
 
-# Total Revenue per Month  ------------------------------------------
+#endregion
+
+#region Total Revenue per Month 
 def r3():
     revenue_per_month = loads.groupby("year_month")["revenue"].sum().sort_index()
     plt.figure(figsize=(12,6))
@@ -626,45 +632,22 @@ def r3():
     plt.tight_layout()
     plt.show()
 
-# 
+#endregion
+
+#region Fuel Cost as % of Revenue (Financial Health Indicator) 
 def r4():
+    ipdb.set_trace()
     # Prepare Revenue per Month ---- 
-    # Ensure datetime
-    loads["load_date"] = pd.to_datetime(loads["load_date"], errors="coerce")
-
-    # Create year-month
-    loads["year_month"] = loads["load_date"].dt.to_period("M")
-
-    # Monthly revenue
-    monthly_revenue = (
-        loads
-        .groupby("year_month")["revenue"]
-        .sum()
-    )
+    monthly_revenue = loads.groupby("year_month")["revenue"].sum()
 
     # Plot (Bar + Line Combo Chart) ----  
-    fuel_purchases["purchase_date"] = pd.to_datetime(
-        fuel_purchases["purchase_date"], errors="coerce"
-    )
-
-    fuel_purchases["year_month"] = fuel_purchases["purchase_date"].dt.to_period("M")
-
-    monthly_fuel_cost = (
-        fuel_purchases
-        .groupby("year_month")["total_cost"]
-        .sum()
-    )
+    monthly_fuel_cost = fuel_purchases.groupby("year_month")["total_cost"].sum()
 
     # Combine Both ---- 
-    financial_df = pd.DataFrame({
-        "Revenue": monthly_revenue,
-        "Fuel_Cost": monthly_fuel_cost
-    }).fillna(0)
+    financial_df = pd.DataFrame({"Revenue": monthly_revenue,"Fuel_Cost": monthly_fuel_cost}).dropna()
 
     # Fuel cost percentage
-    financial_df["Fuel_%_of_Revenue"] = (
-        financial_df["Fuel_Cost"] / financial_df["Revenue"]
-    ) * 100
+    financial_df[r"Fuel_%_of_Revenue"] = (financial_df["Fuel_Cost"] / financial_df["Revenue"]) * 100
 
     # Convert index to timestamp for plotting
     financial_df.index = financial_df.index.to_timestamp()
@@ -674,29 +657,18 @@ def r4():
     fig, ax1 = plt.subplots(figsize=(12,6))
 
     # Bar chart for Revenue
-    ax1.bar(
-        financial_df.index,
-        financial_df["Revenue"],
-        alpha=0.6,
-        label="Revenue"
-    )
+    ax1.bar(financial_df.index,financial_df["Revenue"],alpha=0.6,label="Revenue")
 
     ax1.set_ylabel("Revenue")
     ax1.set_xlabel("Month")
-    ax1.set_title("Fuel Cost as % of Revenue")
+    ax1.set_title(r"Fuel Cost as % of Revenue")
 
     # Second axis for percentage
     ax2 = ax1.twinx()
 
-    ax2.plot(
-        financial_df.index,
-        financial_df["Fuel_%_of_Revenue"],
-        color="red",
-        marker="o",
-        label="Fuel % of Revenue"
-    )
+    ax2.plot(financial_df.index,financial_df[r"Fuel_%_of_Revenue"],color="red",marker="o",label=r"Fuel % of Revenue")
 
-    ax2.set_ylabel("Fuel % of Revenue")
+    ax2.set_ylabel(r"Fuel % of Revenue")
 
     # Format percentage axis
     ax2.yaxis.set_major_formatter(mtick.PercentFormatter())
@@ -704,9 +676,11 @@ def r4():
     fig.tight_layout()
     plt.show()
 
+#endregion
 
 #endregion
 
 # grouped_fuel_purchases = grouped_fuel_purchases.reset_index()
 # grouped_fuel_purchase["test"] = grouped_fuel_purchases.apply(format_date_2)
+r4()
 ipdb.set_trace()

@@ -32,11 +32,10 @@ first i imported some packages and libraries. (you can tell me to add any other 
 ** i mostly used the fillna option and filled nan data with a placeholder so i can prepare some reports on that nan data itself, also some of na values are kept, and there is one case i droped rows with nan values as i think i had a reach amount of data within that dataframe and an small amount of nan values will not matter that much
 - then there is this simple report i created as a test. 
 
-prepared reports:
-the first section of this report focuses on the company financial performance
-there charts show total company revenue over the given time span:
-
-these are the 4 reports generated: 
+now to the main reports
+company financial performance
+these charts show total company revenue over the given time span:
+these are the 4 reports prepared for this purpose: 
 1- comparision of revenue change over each month
 2- revenue per year
 3- revenue per month
@@ -45,6 +44,21 @@ the resaults are quite self explanetory:
 the company experienced a gap in company income.
 also the company usually experiences the least revenue in February
 
+4- Fuel Cost as % of Revenue 
+Fuel is one of the largest variable expenses in trucking. This metric could tells us:
+- How heavy fuel expenses are relative to income
+- Whether rising fuel prices are eating into profits
+- How efficiently the fleet is operating
+
+5- 
+How much profit each route generates after subtracting fuel costs.
+Some routes look busy but barely profitable
+Some long routes may generate high revenue but burn too much fuel
+Some shorter lanes may be extremely efficient
+
+
+Terminology:
+MPG: MPG stands for miles per gallon and measures a vehicle's fuel efficiency by indicating how many miles it can travel on a single gallon of gasoline or diesel.
 
 Dataset from kaggle: https://www.kaggle.com/datasets/yogape/logistics-operations-database
 
